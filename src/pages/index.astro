@@ -1,16 +1,22 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
+import Rainbow from '../components/web3/Rainbow.tsx';
+import StakePanel from '../components/StakePanel.svelte';
 ---
+<Layout>
+  <main class="container">
+    <header class="hero">
+      <div class="left">
+        <h1>Potentials Staking</h1>
+        <p>Connect, select NFTs, lock, and stake in one transaction.</p>
+      </div>
+      <div class="right">
+        <Rainbow client:load />
+      </div>
+    </header>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+    <section>
+      <StakePanel client:load />
+    </section>
+  </main>
+</Layout>
