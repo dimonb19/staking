@@ -1,0 +1,14 @@
+/* TEAM */
+
+Your title: Vani
+Site: https://x.com/vani0xFF
+
+Your title: Dimon
+GitHub: https://github.com/windickated
+
+/* SITE */
+
+Contact: contact@dgrslabs.com
+Website: https://dgrslabs.ink
+Standards: HTML5, CSS3.
+Software: Astro.js, Svelte, Typescript, etc.

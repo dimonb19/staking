@@ -1,6 +1,6 @@
-const isBrowser = typeof window !== "undefined";
+const isBrowser = typeof window !== 'undefined';
 
-export const POTENTIALS_KEY = "potentials-cache";
+export const POTENTIALS_KEY = 'potentials-cache';
 export const TTL_MONTH = 60 * 60 * 24 * 30; // seconds
 
 const getStorage = () => (isBrowser ? window.localStorage : undefined);

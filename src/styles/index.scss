@@ -1,11 +1,11 @@
 :root {
   color-scheme: dark;
   font-family:
-    "Inter",
+    'Inter',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    'Segoe UI',
     sans-serif;
   background-color: #05070d;
   color: #f5f6fb;
@@ -252,7 +252,7 @@ section {
 }
 
 select,
-input[type="checkbox"] {
+input[type='checkbox'] {
   accent-color: #33e2e6;
 }
 

@@ -10,7 +10,6 @@
     busy as busyStore,
     error as errorStore,
     notice as noticeStore,
-    type TokenState,
   } from '@stores/web3.svelte';
   import { unstakeTokens } from '@/lib/staking';
 
@@ -21,7 +20,9 @@
   $: modalToken = $stakeModalToken;
   $: tokens = $myTokens;
   $: currentToken =
-    modalToken !== null ? tokens.find((token) => token.tokenId === modalToken) ?? null : null;
+    modalToken !== null
+      ? (tokens.find((token) => token.tokenId === modalToken) ?? null)
+      : null;
   $: status = deriveStatus(currentToken);
   $: canUnstake =
     status === 'unlockable' &&
@@ -117,7 +118,8 @@
       stakeModalToken.set(null);
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error ? err.message : 'Unstake transaction failed.';
+      const message =
+        err instanceof Error ? err.message : 'Unstake transaction failed.';
       localError = message;
       errorStore.set(message);
     } finally {
@@ -159,7 +161,8 @@
               <span class="label">Status</span>
               <strong>{statusLabel(status)}</strong>
             </div>
-            <span class="helper">{statusDescription(status, currentToken)}</span>
+            <span class="helper">{statusDescription(status, currentToken)}</span
+            >
           </div>
 
           <dl class="modal-grid">
@@ -172,7 +175,7 @@
               <dd>
                 {currentToken.lockMonths
                   ? `${currentToken.lockMonths} months`
-                  : "—"}
+                  : '—'}
               </dd>
             </div>
             <div>

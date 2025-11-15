@@ -1,16 +1,80 @@
 ---
 import '/src/styles/index.scss';
+
+import { SEO } from 'astro-seo';
+import { seoConfig } from '../../utils/seoConfig';
+
+type LayoutProps = {
+  title?: string;
+  description?: string;
+  image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageType?: string;
+  url?: string;
+  type?: string;
+  ogTitle?: string;
+  disableIndexing?: boolean;
+};
+
+const {
+  title = 'Staking | DGRS LABS',
+  description = 'Potentials Staking lets holders lock NFTs by months, disable transfers while locked, and manage stakes from one page.',
+  image = seoConfig.image.url,
+  imageWidth = seoConfig.image.width,
+  imageHeight = seoConfig.image.height,
+  imageType = seoConfig.image.type,
+  url = seoConfig.baseURL,
+  type = 'website',
+  ogTitle,
+  disableIndexing = false,
+} = Astro.props as LayoutProps;
+
+const absoluteImageURL = image.startsWith('http')
+  ? image
+  : `${seoConfig.baseURL}${image}`;
 ---
 
-<html lang="en">
+<html lang="en" transition:name="root" transition:animate="none">
   <head>
-    <title>Governance Hub</title>
     <meta charset="utf-8" />
+    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="theme-color" content="#161e5f" />
     <meta
-      http-equiv="Content-Security-Policy"
-      content="upgrade-insecure-requests"
+      name="robots"
+      content={disableIndexing ? 'noindex, nofollow' : 'index, follow'}
+    />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link type="text/plain" rel="author" href="/humans.txt" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <SEO
+      title={title}
+      description={description || seoConfig.description}
+      noindex={disableIndexing}
+      nofollow={disableIndexing}
+      canonical={`${seoConfig.baseURL}${Astro.url.pathname}`}
+      openGraph={{
+        basic: {
+          title: ogTitle || title,
+          type,
+          image: absoluteImageURL,
+          url,
+        },
+        image: {
+          width: imageWidth,
+          height: imageHeight,
+          type: imageType,
+          url: absoluteImageURL,
+          alt: seoConfig.image.alt,
+        },
+        optional: {
+          siteName: seoConfig.siteName,
+          description,
+        },
+      }}
     />
   </head>
   <body>

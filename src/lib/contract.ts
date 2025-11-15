@@ -1,5 +1,5 @@
-import { z } from "zod";
-import type { Abi } from "viem";
+import { z } from 'zod';
+import type { Abi } from 'viem';
 
 const env = z
   .object({
@@ -19,61 +19,61 @@ export const GRAPHQL_ENDPOINT = env.PUBLIC_GRAPHQL_ENDPOINT;
 
 export const POTENTIALS_ABI = [
   {
-    name: "setApprovalForAll",
-    inputs: [{ type: "address" }, { type: "bool" }],
+    name: 'setApprovalForAll',
+    inputs: [{ type: 'address' }, { type: 'bool' }],
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    name: "ownerOf",
-    inputs: [{ type: "uint256" }],
-    outputs: [{ type: "address" }],
-    stateMutability: "view",
-    type: "function",
+    name: 'ownerOf',
+    inputs: [{ type: 'uint256' }],
+    outputs: [{ type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    name: "isApprovedForAll",
-    inputs: [{ type: "address" }, { type: "address" }],
-    outputs: [{ type: "bool" }],
-    stateMutability: "view",
-    type: "function",
+    name: 'isApprovedForAll',
+    inputs: [{ type: 'address' }, { type: 'address' }],
+    outputs: [{ type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
   },
 ] as const;
 
 export const STAKING_ABI = [
   {
-    name: "stake",
-    inputs: [{ type: "uint256[]" }, { type: "uint8[]" }],
+    name: 'stake',
+    inputs: [{ type: 'uint256[]' }, { type: 'uint8[]' }],
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    name: "unstake",
-    inputs: [{ type: "uint256[]" }],
+    name: 'unstake',
+    inputs: [{ type: 'uint256[]' }],
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    name: "getStakeInfo",
-    inputs: [{ type: "uint256" }],
+    name: 'getStakeInfo',
+    inputs: [{ type: 'uint256' }],
     outputs: [
-      { type: "uint40" },
-      { type: "uint40" },
-      { type: "uint8" },
-      { type: "address" },
+      { type: 'uint40' },
+      { type: 'uint40' },
+      { type: 'uint8' },
+      { type: 'address' },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    name: "isStakingPaused",
+    name: 'isStakingPaused',
     inputs: [],
-    outputs: [{ type: "bool" }],
-    stateMutability: "view",
-    type: "function",
+    outputs: [{ type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
   },
 ] as const;
 

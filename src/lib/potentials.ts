@@ -1,13 +1,13 @@
-import { ethers } from "ethers";
-import { createPublicClient, http } from "viem";
-import { sepolia as viemSepolia } from "viem/chains";
+import { ethers } from 'ethers';
+import { createPublicClient, http } from 'viem';
+import { sepolia as viemSepolia } from 'viem/chains';
 import {
   CHAIN_ID,
   RPC_URL,
   POTENTIALS_ADDRESS,
   POTENTIALS_ABI,
   POTENTIALS_ABI_VIEM,
-} from "@/lib/contract";
+} from '@/lib/contract';
 
 const sepolia = {
   ...viemSepolia,
@@ -68,7 +68,7 @@ export async function getOwnedTokenIds(
     ids.map((id) => ({
       address: POTENTIALS_ADDRESS as `0x${string}`,
       abi: POTENTIALS_ABI_VIEM,
-      functionName: "ownerOf" as const,
+      functionName: 'ownerOf' as const,
       args: [id] as const,
     }));
 
@@ -76,7 +76,7 @@ export async function getOwnedTokenIds(
   for (const batch of batches) {
     const res = await viemClient.multicall({ contracts: calls(batch) });
     res.forEach((result, idx) => {
-      if (result.status === "success") {
+      if (result.status === 'success') {
         const ownerAddr = (
           result.result as string | undefined
         )?.toLowerCase?.();
