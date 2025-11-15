@@ -110,6 +110,48 @@ section {
   color: #8a95b9;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.stats-grid.global {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stats-card {
+  border: 1px solid rgba(84, 102, 140, 0.35);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  background: rgba(12, 16, 26, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stats-card.compact {
+  padding: 0.85rem 1rem;
+}
+
+.stats-card .label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8fa0c6;
+}
+
+.stats-card .value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.stats-card .subtext {
+  font-size: 0.85rem;
+  color: #8ddcf4;
+}
+
 .token-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -134,6 +176,12 @@ section {
 
 .token-card.staked {
   border-color: rgba(255, 193, 71, 0.6);
+}
+
+.token-card .token-meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #9ea7c4;
 }
 
 .token-card-header {
@@ -171,6 +219,12 @@ section {
   border: 1px solid rgba(255, 193, 71, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.badge.available {
+  background: rgba(82, 255, 198, 0.12);
+  border-color: rgba(82, 255, 198, 0.4);
+  color: #82ffc6;
 }
 
 .link-btn {
@@ -366,6 +420,10 @@ select {
   border-color: rgba(51, 226, 230, 0.7);
 }
 
+.status-chip.not-staked {
+  border-color: rgba(158, 167, 196, 0.4);
+}
+
 .modal-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -415,6 +473,11 @@ select {
   .stake-actions .btn {
     width: 100%;
     text-align: center;
+  }
+
+  .stats-grid,
+  .stats-grid.global {
+    grid-template-columns: 1fr;
   }
 
   .modal-grid {

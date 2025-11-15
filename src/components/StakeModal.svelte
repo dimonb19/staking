@@ -1,52 +1,32 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-  import type { BrowserProvider } from "ethers";
+  import { get } from 'svelte/store';
+  import type { BrowserProvider } from 'ethers';
 
   import {
     address,
     provider,
-    stakeInfoCache,
+    myTokens,
     stakeModalToken,
     busy as busyStore,
     error as errorStore,
     notice as noticeStore,
-  } from "@stores/web3.svelte";
-  import {
-    getStakeInfo,
-    readProvider,
-    unstakeTokens,
-    type StakeInfo,
-  } from "@/lib/staking";
-  import {
-    deriveStakeStatus,
-    formatCountdown,
-    formatTimestamp,
-    type StakeStatus,
-  } from "@/lib/stake-format";
+    type TokenState,
+  } from '@stores/web3.svelte';
+  import { unstakeTokens } from '@/lib/staking';
 
-  export let refreshTokensFor: (addr: string) => Promise<void>;
+  export let loadStakingData: (addr: string) => Promise<void>;
 
-  let loading = false;
   let localError: string | null = null;
 
-  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-  let info: StakeInfo | null = null;
-  let status: StakeStatus = "never";
-
   $: modalToken = $stakeModalToken;
-  $: cache = $stakeInfoCache;
-  $: cachedEntry = modalToken != null ? cache[modalToken] : undefined;
-  $: info = cachedEntry ?? null;
-  $: status = deriveStakeStatus(info);
+  $: tokens = $myTokens;
+  $: currentToken =
+    modalToken !== null ? tokens.find((token) => token.tokenId === modalToken) ?? null : null;
+  $: status = deriveStatus(currentToken);
   $: canUnstake =
-    status === "unlockable" &&
-    info?.owner &&
-    info.owner.toLowerCase() === ($address ?? "").toLowerCase();
-
-  $: if (modalToken !== null && cachedEntry === undefined && !loading) {
-    void loadStakeInfo(modalToken);
-  }
+    status === 'unlockable' &&
+    currentToken?.isStaked &&
+    currentToken.unlockTime <= Math.floor(Date.now() / 1000);
 
   function closeModal() {
     localError = null;
@@ -59,27 +39,58 @@
     }
   }
 
-  async function loadStakeInfo(tokenId: number) {
-    loading = true;
-    localError = null;
-    try {
-      const currentProvider =
-        (get(provider) as BrowserProvider | null) ?? readProvider;
-      const result = await getStakeInfo(currentProvider, tokenId);
-      const entry = result.startTime > 0 ? result : null;
-      stakeInfoCache.update((prev) => ({ ...prev, [tokenId]: entry }));
-    } catch (err) {
-      console.error(err);
-      localError =
-        err instanceof Error ? err.message : "Unable to fetch stake data.";
-    } finally {
-      loading = false;
+  function deriveStatus(token: TokenState | null) {
+    if (!token || !token.isStaked) return 'not-staked';
+    const now = Math.floor(Date.now() / 1000);
+    return token.unlockTime > now ? 'locked' : 'unlockable';
+  }
+
+  function statusLabel(current: string) {
+    switch (current) {
+      case 'locked':
+        return 'Locked';
+      case 'unlockable':
+        return 'Unlockable';
+      default:
+        return 'Not staked';
     }
   }
 
+  function statusDescription(current: string, token: TokenState | null) {
+    if (current === 'locked' && token?.unlockTime) {
+      return `Unlocks in ${formatCountdown(token.unlockTime)}`;
+    }
+    if (current === 'unlockable') {
+      return 'Lock complete. You can unstake now.';
+    }
+    return 'This NFT is not currently staked.';
+  }
+
+  function formatTimestamp(value?: number | null) {
+    if (!value) return '—';
+    const date = new Date(value * 1000);
+    return date.toUTCString();
+  }
+
+  function formatCountdown(unlockTime?: number | null) {
+    if (!unlockTime) return '—';
+    const now = Math.floor(Date.now() / 1000);
+    const diff = Math.max(unlockTime - now, 0);
+    if (diff === 0) return 'Ready to unstake';
+    const days = Math.floor(diff / 86400);
+    const hours = Math.floor((diff % 86400) / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours) parts.push(`${hours}h`);
+    if (!days && minutes) parts.push(`${minutes}m`);
+    if (!parts.length) parts.push(`${diff % 60}s`);
+    return parts.join(' ');
+  }
+
   async function handleUnstake() {
-    if (!canUnstake || modalToken === null || !info) {
-      localError = "Token is not ready to unstake.";
+    if (!currentToken || !canUnstake || modalToken === null) {
+      localError = 'Token is not ready to unstake.';
       return;
     }
 
@@ -87,63 +98,29 @@
     const currentProvider = get(provider) as BrowserProvider | null;
 
     if (!wallet || !currentProvider) {
-      localError = "Connect a wallet first.";
+      localError = 'Connect a wallet first.';
       return;
     }
 
-    const now = Math.floor(Date.now() / 1000);
-    if (info.unlockTime > now) {
-      localError = "Lock period has not ended yet.";
-      return;
-    }
-
-    busyStore.set("unstake");
+    localError = null;
+    busyStore.set('unstake');
     errorStore.set(null);
     noticeStore.set(null);
-    localError = null;
 
     try {
       const signer = await currentProvider.getSigner();
       await unstakeTokens(signer, [modalToken]);
       noticeStore.set(`Unstaked token #${modalToken}.`);
-      await refreshTokensFor(wallet);
-      stakeInfoCache.update((prev) => ({ ...prev, [modalToken]: null }));
+      await loadStakingData(wallet);
       stakeModalToken.set(null);
     } catch (err) {
       console.error(err);
-      const message =
-        err instanceof Error ? err.message : "Unstake transaction failed.";
+      const message = err instanceof Error ? err.message : 'Unstake transaction failed.';
       localError = message;
       errorStore.set(message);
     } finally {
-      busyStore.set("idle");
+      busyStore.set('idle');
     }
-  }
-
-  function shortAddress(value?: string | null) {
-    if (!value || value === ZERO_ADDRESS) return "—";
-    return `${value.slice(0, 6)}…${value.slice(-4)}`;
-  }
-
-  function statusLabel(current: StakeStatus) {
-    switch (current) {
-      case "locked":
-        return "Locked";
-      case "unlockable":
-        return "Unlockable";
-      default:
-        return "Not staked";
-    }
-  }
-
-  function statusDescription(current: StakeStatus, stake?: StakeInfo | null) {
-    if (current === "locked" && stake?.unlockTime) {
-      return `Unlocks in ${formatCountdown(stake.unlockTime)}`;
-    }
-    if (current === "unlockable") {
-      return "Lock complete. You can unstake now.";
-    }
-    return "No active stake found for this NFT.";
   }
 </script>
 
@@ -172,33 +149,37 @@
       </header>
 
       <section class="modal-body">
-        {#if loading}
-          <p class="modal-status">Loading stake data…</p>
+        {#if !currentToken}
+          <p class="modal-status">No stake data available for this NFT yet.</p>
         {:else}
-          <div class="status-chip {status}">
+          <div class={`status-chip ${status}`}>
             <div>
               <span class="label">Status</span>
               <strong>{statusLabel(status)}</strong>
             </div>
-            <span class="helper">{statusDescription(status, info)}</span>
+            <span class="helper">{statusDescription(status, currentToken)}</span>
           </div>
 
           <dl class="modal-grid">
             <div>
-              <dt>Owner</dt>
-              <dd>{shortAddress(info?.owner)}</dd>
+              <dt>Voting power</dt>
+              <dd>{currentToken.votingPower.toLocaleString()}</dd>
             </div>
             <div>
               <dt>Lock duration</dt>
-              <dd>{info?.lockMonths ? `${info.lockMonths} months` : "—"}</dd>
+              <dd>
+                {currentToken.lockMonths
+                  ? `${currentToken.lockMonths} months`
+                  : "—"}
+              </dd>
             </div>
             <div>
-              <dt>Start time (UTC)</dt>
-              <dd>{formatTimestamp(info?.startTime)}</dd>
+              <dt>Staked at (UTC)</dt>
+              <dd>{formatTimestamp(currentToken.stakedAt)}</dd>
             </div>
             <div>
               <dt>Unlock time (UTC)</dt>
-              <dd>{formatTimestamp(info?.unlockTime)}</dd>
+              <dd>{formatTimestamp(currentToken.unlockTime)}</dd>
             </div>
           </dl>
 
@@ -216,9 +197,9 @@
           class="btn primary"
           type="button"
           onclick={handleUnstake}
-          disabled={!canUnstake || loading || $busyStore === "unstake"}
+          disabled={!canUnstake || !currentToken || $busyStore === 'unstake'}
         >
-          {$busyStore === "unstake" ? "Unstaking…" : "Unstake NFT"}
+          {$busyStore === 'unstake' ? 'Unstaking…' : 'Unstake NFT'}
         </button>
       </footer>
     </div>

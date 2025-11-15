@@ -7,6 +7,7 @@ const env = z
     PUBLIC_CHAIN_ID: z.coerce.number().int(),
     PUBLIC_POTENTIALS_ADDRESS: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
     PUBLIC_STAKING_ADDRESS: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+    PUBLIC_GRAPHQL_ENDPOINT: z.string().url(),
   })
   .parse(import.meta.env);
 
@@ -14,6 +15,7 @@ export const RPC_URL = env.PUBLIC_RPC_URL;
 export const CHAIN_ID = env.PUBLIC_CHAIN_ID;
 export const POTENTIALS_ADDRESS = env.PUBLIC_POTENTIALS_ADDRESS;
 export const STAKING_ADDRESS = env.PUBLIC_STAKING_ADDRESS;
+export const GRAPHQL_ENDPOINT = env.PUBLIC_GRAPHQL_ENDPOINT;
 
 export const POTENTIALS_ABI = [
   {

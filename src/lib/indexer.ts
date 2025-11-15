@@ -1,0 +1,146 @@
+import { GRAPHQL_ENDPOINT } from '@/lib/contract';
+
+const POINTS_PER_SECOND = 500_000 / (7 * 24 * 60 * 60);
+
+export type RawStakedNFT = {
+  tokenId: string;
+  votingPower: string;
+  lockMonths: number;
+  stakedAt: string;
+  unlockTime: string;
+  isStaked: boolean;
+};
+
+type RawUser = {
+  totalVotingPower: string;
+  accumulatedPoints: string;
+  stakedNFTCount: number;
+  lastUpdateTime: string;
+};
+
+type RawGlobalState = {
+  totalVotingPower: string;
+  totalStakedNFTs: number;
+};
+
+export type UserStakingData = {
+  stakedNFTs: RawStakedNFT[];
+  totalVotingPower: bigint;
+  accumulatedPoints: number;
+  currentPoints: number;
+  pointsPerSecond: number;
+  stakedNFTCount: number;
+};
+
+export async function queryGraphQL<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<T> {
+  const response = await fetch(GRAPHQL_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`GraphQL request failed: ${response.statusText}`);
+  }
+
+  const payload = await response.json();
+  if (payload.errors) {
+    throw new Error(`GraphQL errors: ${JSON.stringify(payload.errors)}`);
+  }
+
+  return payload.data as T;
+}
+
+export async function getUserStakingData(userAddress: string): Promise<UserStakingData> {
+  const query = `
+    query GetUserData($user: String!) {
+      User(where: { id: { _eq: $user } }) {
+        totalVotingPower
+        accumulatedPoints
+        stakedNFTCount
+        lastUpdateTime
+      }
+      StakedNFT(where: { user: { _eq: $user } }) {
+        tokenId
+        votingPower
+        lockMonths
+        stakedAt
+        unlockTime
+        isStaked
+      }
+      GlobalState {
+        totalVotingPower
+        totalStakedNFTs
+      }
+    }
+  `;
+
+  const result = await queryGraphQL<{
+    User: RawUser[];
+    StakedNFT: RawStakedNFT[];
+    GlobalState: RawGlobalState[];
+  }>(query, { user: userAddress.toLowerCase() });
+
+  const user = result.User[0];
+  const globalState = result.GlobalState[0];
+
+  if (!user || !globalState) {
+    return {
+      stakedNFTs: [],
+      totalVotingPower: 0n,
+      accumulatedPoints: 0,
+      currentPoints: 0,
+      pointsPerSecond: 0,
+      stakedNFTCount: 0,
+    };
+  }
+
+  const userVP = BigInt(user.totalVotingPower);
+  const globalVP = BigInt(globalState.totalVotingPower || '0');
+  const lastUpdateTime = BigInt(user.lastUpdateTime || '0');
+  const currentTime = BigInt(Math.floor(Date.now() / 1000));
+  const timeElapsed = Number(currentTime - lastUpdateTime);
+
+  const accumulatedPoints = parseFloat(user.accumulatedPoints ?? '0');
+  const pendingPoints =
+    globalVP > 0n
+      ? (Number(userVP) / Number(globalVP)) * POINTS_PER_SECOND * Math.max(timeElapsed, 0)
+      : 0;
+
+  const pointsPerSecond =
+    globalVP > 0n ? (Number(userVP) / Number(globalVP)) * POINTS_PER_SECOND : 0;
+
+  return {
+    stakedNFTs: result.StakedNFT,
+    totalVotingPower: userVP,
+    accumulatedPoints,
+    currentPoints: accumulatedPoints + pendingPoints,
+    pointsPerSecond,
+    stakedNFTCount: user.stakedNFTCount,
+  };
+}
+
+export async function getGlobalStats(): Promise<{
+  totalVotingPower: bigint;
+  totalStakedNFTs: number;
+}> {
+  const query = `
+    query GetGlobalStats {
+      GlobalState {
+        totalVotingPower
+        totalStakedNFTs
+      }
+    }
+  `;
+
+  const result = await queryGraphQL<{ GlobalState: RawGlobalState[] }>(query);
+  const globalState = result.GlobalState[0];
+
+  return {
+    totalVotingPower: globalState ? BigInt(globalState.totalVotingPower || '0') : 0n,
+    totalStakedNFTs: globalState ? globalState.totalStakedNFTs : 0,
+  };
+}

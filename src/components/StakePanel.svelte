@@ -1,39 +1,33 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import type { Action } from "svelte/action";
-  import { get } from "svelte/store";
-  import { createElement } from "react";
-  import { createRoot } from "react-dom/client";
-  import type { BrowserProvider } from "ethers";
+  import { onMount } from 'svelte';
+  import type { Action } from 'svelte/action';
+  import { get } from 'svelte/store';
+  import { createElement } from 'react';
+  import { createRoot } from 'react-dom/client';
+  import type { BrowserProvider } from 'ethers';
 
-  import Rainbow from "@components/web3/Rainbow.tsx";
-  import {
-    setApprovalForAll,
-    isApprovedForAll,
-    getOwnedTokenIds,
-  } from "@/lib/potentials";
+  import Rainbow from '@components/web3/Rainbow.tsx';
+  import { setApprovalForAll, isApprovedForAll } from '@/lib/potentials';
   import {
     address,
     provider,
     connected,
     myTokens,
+    userStats,
+    globalStats,
+    dataStatus,
+    dataError,
     busy as busyStore,
     error as errorStore,
     notice as noticeStore,
     isPaused as pausedStore,
-    stakeInfoCache,
     stakeModalToken,
     type TokenState,
-  } from "@stores/web3.svelte";
-  import {
-    stakingContract,
-    isPaused,
-    stakeTokens,
-    getUserStakes,
-    type StakeInfo,
-  } from "@/lib/staking";
-  import { STAKING_ADDRESS } from "@/lib/contract";
-  import StakeModal from "./StakeModal.svelte";
+  } from '@stores/web3.svelte';
+  import { stakingContract, isPaused, stakeTokens } from '@/lib/staking';
+  import { getUserStakingData, getGlobalStats } from '@/lib/indexer';
+  import { STAKING_ADDRESS } from '@/lib/contract';
+  import StakeModal from './StakeModal.svelte';
 
   const LOCK_OPTIONS = [1, 3, 6, 12];
   const DEFAULT_LOCK = 6;
@@ -56,70 +50,62 @@
     };
   };
 
-  async function refreshTokensFor(addr: string) {
-    busyStore.set("fetch");
+  function normalizeToken(raw: {
+    tokenId: string;
+    votingPower: string;
+    lockMonths: number;
+    stakedAt: string;
+    unlockTime: string;
+    isStaked: boolean;
+  }): TokenState {
+    return {
+      tokenId: Number(raw.tokenId),
+      votingPower: Number(raw.votingPower ?? 0),
+      lockMonths: Number(raw.lockMonths ?? DEFAULT_LOCK) || DEFAULT_LOCK,
+      stakedAt: Number(raw.stakedAt ?? 0),
+      unlockTime: Number(raw.unlockTime ?? 0),
+      isStaked: Boolean(raw.isStaked),
+      selected: false,
+    };
+  }
+
+  async function loadStakingData(addr: string) {
+    busyStore.set('fetch');
+    dataStatus.set('loading');
+    dataError.set(null);
     errorStore.set(null);
     noticeStore.set(null);
 
     try {
-      const ownedPromise = getOwnedTokenIds(addr as `0x${string}`);
-
-      const [ownedIds, stakedInfos] = await Promise.all([
-        ownedPromise,
-        getUserStakes(addr as `0x${string}`),
+      const [userData, globalSnapshot] = await Promise.all([
+        getUserStakingData(addr),
+        getGlobalStats(),
       ]);
 
-      const normalized = ownedIds
-        .map((value) => Number(value))
-        .filter((value) => Number.isFinite(value));
+      const tokens = userData.stakedNFTs.map(normalizeToken).sort((a, b) => a.tokenId - b.tokenId);
+      myTokens.set(tokens);
 
-      const tokensMap = new Map<number, TokenState>();
-      normalized.forEach((tokenId) => {
-        tokensMap.set(tokenId, {
-          tokenId,
-          selected: false,
-          months: DEFAULT_LOCK,
-          staked: false,
-        });
+      userStats.set({
+        totalVotingPower: userData.totalVotingPower,
+        accumulatedPoints: userData.accumulatedPoints,
+        currentPoints: userData.currentPoints,
+        pointsPerSecond: userData.pointsPerSecond,
+        stakedNFTCount: userData.stakedNFTCount,
       });
 
-      stakedInfos.forEach((info) => {
-        tokensMap.set(info.tokenId, {
-          tokenId: info.tokenId,
-          selected: false,
-          months: info.lockMonths || DEFAULT_LOCK,
-          staked: true,
-        });
-      });
+      globalStats.set(globalSnapshot);
 
-      const combined = Array.from(tokensMap.values()).sort(
-        (a, b) => a.tokenId - b.tokenId
-      );
-      myTokens.set(combined);
-
-      if (!combined.length) {
-        noticeStore.set(
-          "No Potentials NFTs or active stakes detected for this wallet."
-        );
+      if (!tokens.length) {
+        dataStatus.set('empty');
+      } else {
+        dataStatus.set('ready');
       }
-
-      const cacheSeed = stakedInfos.reduce<Record<number, StakeInfo | null>>(
-        (acc, info) => {
-          acc[info.tokenId] = info;
-          return acc;
-        },
-        {}
-      );
-      stakeInfoCache.set(cacheSeed);
     } catch (err) {
       console.error(err);
-      errorStore.set(
-        err instanceof Error
-          ? err.message
-          : "Unable to fetch Potentials ownership."
-      );
+      dataStatus.set('error');
+      dataError.set(err instanceof Error ? err.message : 'Unable to load staking data.');
     } finally {
-      busyStore.set("idle");
+      busyStore.set('idle');
     }
   }
 
@@ -147,18 +133,18 @@
   function toggleSelection(tokenId: number, selectedValue: boolean) {
     myTokens.update((tokens) =>
       tokens.map((token) => {
-        if (token.tokenId !== tokenId || token.staked) return token;
+        if (token.tokenId !== tokenId || token.isStaked) return token;
         return { ...token, selected: selectedValue };
-      })
+      }),
     );
   }
 
   function updateLock(tokenId: number, monthsValue: number) {
     myTokens.update((tokens) =>
       tokens.map((token) => {
-        if (token.tokenId !== tokenId || token.staked) return token;
-        return { ...token, months: monthsValue };
-      })
+        if (token.tokenId !== tokenId || token.isStaked) return token;
+        return { ...token, lockMonths: monthsValue };
+      }),
     );
   }
 
@@ -169,7 +155,7 @@
   function onRefreshClick() {
     const current = get(address);
     if (!current) return;
-    refreshTokensFor(current);
+    loadStakingData(current);
   }
 
   async function handleApprove() {
@@ -223,16 +209,14 @@
       return;
     }
 
-    const selection = get(myTokens).filter(
-      (token) => token.selected && !token.staked
-    );
+    const selection = get(myTokens).filter((token) => token.selected && !token.isStaked);
     if (!selection.length) {
       errorStore.set("Select at least one NFT to stake.");
       return;
     }
 
     const tokenIds = selection.map((token) => token.tokenId);
-    const months = selection.map((token) => token.months);
+    const months = selection.map((token) => token.lockMonths);
 
     if (months.some((value) => !LOCK_OPTIONS.includes(value))) {
       errorStore.set("Choose a valid lock duration for each NFT.");
@@ -247,11 +231,9 @@
       const signer = await currentProvider.getSigner();
       await stakeTokens(signer, tokenIds, months);
       noticeStore.set(
-        `Staked ${tokenIds.length} NFT${
-          tokenIds.length > 1 ? "s" : ""
-        } successfully.`
+        `Staked ${tokenIds.length} NFT${tokenIds.length > 1 ? "s" : ""} successfully.`,
       );
-      await refreshTokensFor(current);
+      await loadStakingData(current);
     } catch (err) {
       console.error(err);
       errorStore.set(
@@ -268,15 +250,18 @@
       if (!value) {
         approved = false;
         myTokens.set([]);
+        userStats.set(null);
+        globalStats.set(null);
+        dataStatus.set('idle');
+        dataError.set(null);
         noticeStore.set(null);
         errorStore.set(null);
-        stakeInfoCache.set({});
         stakeModalToken.set(null);
         pausedStore.set(false);
         return;
       }
       refreshApproval(value);
-      refreshTokensFor(value);
+      loadStakingData(value);
     });
 
     const unsubscribeProvider = provider.subscribe(() => {
@@ -291,19 +276,36 @@
     };
   });
 
-  $: selectedTokens = $myTokens.filter(
-    (token) => token.selected && !token.staked
-  );
+  $: selectedTokens = $myTokens.filter((token) => token.selected && !token.isStaked);
   $: selectionCount = selectedTokens.length;
+  $: availableCount = $myTokens.filter((token) => !token.isStaked).length;
   $: stakingDisabled =
     !$connected ||
     !stakingReady ||
     !approved ||
     !selectionCount ||
     $pausedStore ||
-    $busyStore !== "idle";
+    $busyStore !== 'idle';
   $: approveDisabled =
-    approved || !stakingReady || !$connected || $busyStore !== "idle";
+    approved || !stakingReady || !$connected || $busyStore !== 'idle';
+
+  function formatBigInt(value?: bigint | null) {
+    if (value === undefined || value === null) return '0';
+    return value.toString();
+  }
+
+  function formatPoints(value?: number | null, digits = 2) {
+    if (value === undefined || value === null || Number.isNaN(value)) return '0';
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  }
+
+  function formatPerSecond(value?: number | null) {
+    if (!value) return '0 pts/s';
+    return `${value.toFixed(4)} pts/s`;
+  }
 </script>
 
 {#if !$connected}
@@ -357,25 +359,62 @@
       </div>
     {/if}
 
+    {#if $userStats || $globalStats}
+      <div class="stats-grid">
+        <article class="stats-card">
+          <p class="label">Your voting power</p>
+          <p class="value">{formatBigInt($userStats?.totalVotingPower)}</p>
+        </article>
+        <article class="stats-card">
+          <p class="label">Current points</p>
+          <p class="value">{formatPoints($userStats?.currentPoints)}</p>
+          <span class="subtext">{formatPerSecond($userStats?.pointsPerSecond)}</span>
+        </article>
+        <article class="stats-card">
+          <p class="label">Staked NFTs</p>
+          <p class="value">{($userStats?.stakedNFTCount ?? 0).toLocaleString()}</p>
+        </article>
+      </div>
+      <div class="stats-grid global">
+        <article class="stats-card compact">
+          <p class="label">Global voting power</p>
+          <p class="value">{formatBigInt($globalStats?.totalVotingPower)}</p>
+        </article>
+        <article class="stats-card compact">
+          <p class="label">Total staked NFTs</p>
+          <p class="value">{($globalStats?.totalStakedNFTs ?? 0).toLocaleString()}</p>
+        </article>
+      </div>
+    {/if}
+
     <div class="status-row">
       <span>{selectionCount} ready to stake</span>
-      <span>{approved ? "Contract approved" : "Approval required"}</span>
+      <span>{availableCount} available</span>
     </div>
     <p class="helper-text">
-      Click “View stake data” on any NFT to inspect its lock or unstake after it
-      unlocks.
+      Click “View stake data” on any NFT to inspect its lock, claim points visibility, or
+      unstake after unlock.
     </p>
 
-    {#if !$myTokens.length}
+    {#if $dataStatus === 'loading'}
+      <p class="empty-state">Loading staking data…</p>
+    {:else if $dataStatus === 'error'}
+      <div class="banner warn">
+        {$dataError ?? 'Unable to load staking data. Please try refreshing.'}
+      </div>
+    {:else if $dataStatus === 'empty'}
       <p class="empty-state">
-        No Potentials NFTs or stakes detected. Hit Refresh after approvals
-        settle.
+        No Potentials NFTs were found for this wallet in the indexer yet.
+      </p>
+    {:else if $myTokens.length === 0}
+      <p class="empty-state">
+        Data loaded, but no NFTs are currently available for staking.
       </p>
     {:else}
       <div class="token-grid">
         {#each $myTokens as token (token.tokenId)}
           <article
-            class={`token-card ${token.selected ? "selected" : ""} ${token.staked ? "staked" : ""}`}
+            class={`token-card ${token.selected ? 'selected' : ''} ${token.isStaked ? 'staked' : ''}`}
           >
             <div class="token-card-header">
               <label class="checkbox">
@@ -383,38 +422,36 @@
                   type="checkbox"
                   checked={token.selected}
                   aria-label={`Select token ${token.tokenId}`}
-                  disabled={token.staked || $pausedStore}
+                  disabled={token.isStaked || $pausedStore}
                   onchange={(event) =>
                     toggleSelection(token.tokenId, event.currentTarget.checked)}
                 />
                 <span>Select</span>
               </label>
-              {#if token.staked}
+              {#if token.isStaked}
                 <span class="badge">Staked</span>
+              {:else}
+                <span class="badge available">Available</span>
               {/if}
             </div>
             <p class="token-id">Token #{token.tokenId}</p>
+            <p class="token-meta">Voting power: {token.votingPower.toLocaleString()}</p>
             <label class="lock-label">
               Lock duration
               <select
-                value={token.months}
-                disabled={token.staked || $pausedStore}
+                value={token.lockMonths}
+                disabled={token.isStaked || $pausedStore}
                 onchange={(event) =>
                   updateLock(token.tokenId, Number(event.currentTarget.value))}
               >
                 {#each LOCK_OPTIONS as months}
                   <option value={months}>
-                    {months}
-                    {months === 1 ? "month" : "months"}
+                    {months} {months === 1 ? 'month' : 'months'}
                   </option>
                 {/each}
               </select>
             </label>
-            <button
-              class="link-btn"
-              type="button"
-              onclick={() => openStakeModal(token.tokenId)}
-            >
+            <button class="link-btn" type="button" onclick={() => openStakeModal(token.tokenId)}>
               View stake data
             </button>
           </article>
@@ -441,5 +478,4 @@
     {/if}
   </section>
 {/if}
-
-<StakeModal {refreshTokensFor} />
+<StakeModal {loadStakingData} />
