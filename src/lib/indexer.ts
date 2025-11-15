@@ -1,4 +1,4 @@
-import { GRAPHQL_ENDPOINT } from '@/lib/contract';
+import { GRAPHQL_ENDPOINT } from "@/lib/contract";
 
 const POINTS_PER_SECOND = 500_000 / (7 * 24 * 60 * 60);
 
@@ -13,8 +13,8 @@ export async function queryGraphQL<T>(
   variables?: Record<string, unknown>,
 ): Promise<T> {
   const response = await fetch(GRAPHQL_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),
   });
 
@@ -30,7 +30,9 @@ export async function queryGraphQL<T>(
   return payload.data as T;
 }
 
-export async function getUserStakingData(userAddress: string): Promise<UserStakingData> {
+export async function getUserStakingData(
+  userAddress: string,
+): Promise<UserStakingData> {
   const query = `
     query GetUserData($user: String!) {
       User(where: { id: { _eq: $user } }) {
@@ -75,15 +77,17 @@ export async function getUserStakingData(userAddress: string): Promise<UserStaki
   }
 
   const userVP = BigInt(user.totalVotingPower);
-  const globalVP = BigInt(globalState.totalVotingPower || '0');
-  const lastUpdateTime = BigInt(user.lastUpdateTime || '0');
+  const globalVP = BigInt(globalState.totalVotingPower || "0");
+  const lastUpdateTime = BigInt(user.lastUpdateTime || "0");
   const currentTime = BigInt(Math.floor(Date.now() / 1000));
   const timeElapsed = Number(currentTime - lastUpdateTime);
 
-  const accumulatedPoints = parseFloat(user.accumulatedPoints ?? '0');
+  const accumulatedPoints = parseFloat(user.accumulatedPoints ?? "0");
   const pendingPoints =
     globalVP > 0n
-      ? (Number(userVP) / Number(globalVP)) * POINTS_PER_SECOND * Math.max(timeElapsed, 0)
+      ? (Number(userVP) / Number(globalVP)) *
+        POINTS_PER_SECOND *
+        Math.max(timeElapsed, 0)
       : 0;
 
   const pointsPerSecond =
@@ -116,7 +120,9 @@ export async function getGlobalStats(): Promise<{
   const globalState = result.GlobalState[0];
 
   return {
-    totalVotingPower: globalState ? BigInt(globalState.totalVotingPower || '0') : 0n,
+    totalVotingPower: globalState
+      ? BigInt(globalState.totalVotingPower || "0")
+      : 0n,
     totalStakedNFTs: globalState ? globalState.totalStakedNFTs : 0,
   };
 }

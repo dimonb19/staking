@@ -1,13 +1,13 @@
-import { ethers } from 'ethers';
-import { createPublicClient, http } from 'viem';
-import { sepolia as viemSepolia } from 'viem/chains';
+import { ethers } from "ethers";
+import { createPublicClient, http } from "viem";
+import { sepolia as viemSepolia } from "viem/chains";
 import {
   CHAIN_ID,
   RPC_URL,
   POTENTIALS_ADDRESS,
   POTENTIALS_ABI,
   POTENTIALS_ABI_VIEM,
-} from '@/lib/contract';
+} from "@/lib/contract";
 
 const sepolia = {
   ...viemSepolia,
@@ -19,18 +19,26 @@ const sepolia = {
   },
 } as const;
 
-const viemClient = createPublicClient({ chain: sepolia, transport: http(RPC_URL) });
+const viemClient = createPublicClient({
+  chain: sepolia,
+  transport: http(RPC_URL),
+});
 
 export const readProvider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
 
 export const isAddress = (addr: string) => ethers.isAddress(addr);
 
-export function potentialsContract(readerOrSigner?: ethers.Provider | ethers.Signer) {
+export function potentialsContract(
+  readerOrSigner?: ethers.Provider | ethers.Signer,
+) {
   const p = readerOrSigner ?? readProvider;
   return new ethers.Contract(POTENTIALS_ADDRESS, POTENTIALS_ABI, p);
 }
 
-export async function isApprovedForAll(owner: string, operator: string): Promise<boolean> {
+export async function isApprovedForAll(
+  owner: string,
+  operator: string,
+): Promise<boolean> {
   const c = potentialsContract(readProvider);
   return await c.isApprovedForAll(owner, operator);
 }
@@ -60,7 +68,7 @@ export async function getOwnedTokenIds(
     ids.map((id) => ({
       address: POTENTIALS_ADDRESS as `0x${string}`,
       abi: POTENTIALS_ABI_VIEM,
-      functionName: 'ownerOf' as const,
+      functionName: "ownerOf" as const,
       args: [id] as const,
     }));
 
@@ -68,8 +76,10 @@ export async function getOwnedTokenIds(
   for (const batch of batches) {
     const res = await viemClient.multicall({ contracts: calls(batch) });
     res.forEach((result, idx) => {
-      if (result.status === 'success') {
-        const ownerAddr = (result.result as string | undefined)?.toLowerCase?.();
+      if (result.status === "success") {
+        const ownerAddr = (
+          result.result as string | undefined
+        )?.toLowerCase?.();
         if (ownerAddr === owner.toLowerCase()) {
           mine.push(Number(batch[idx]));
         }

@@ -1,6 +1,12 @@
 :root {
   color-scheme: dark;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   background-color: #05070d;
   color: #f5f6fb;
 }
@@ -12,7 +18,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(57, 92, 255, 0.2), transparent 60%),
+  background:
+    radial-gradient(circle at top, rgba(57, 92, 255, 0.2), transparent 60%),
     #05070d;
   color: #f5f6fb;
 }
@@ -166,7 +173,9 @@ section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .token-card.selected {
@@ -243,7 +252,7 @@ section {
 }
 
 select,
-input[type='checkbox'] {
+input[type="checkbox"] {
   accent-color: #33e2e6;
 }
 
@@ -261,7 +270,9 @@ select {
   padding: 0.65rem 1.5rem;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .btn:disabled {

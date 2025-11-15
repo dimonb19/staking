@@ -1,13 +1,13 @@
-import { ethers } from 'ethers';
-import { createPublicClient, http } from 'viem';
-import { sepolia as viemSepolia } from 'viem/chains';
+import { ethers } from "ethers";
+import { createPublicClient, http } from "viem";
+import { sepolia as viemSepolia } from "viem/chains";
 import {
   STAKING_ABI,
   STAKING_ABI_VIEM,
   STAKING_ADDRESS,
   RPC_URL,
   CHAIN_ID,
-} from '@/lib/contract';
+} from "@/lib/contract";
 
 export const readProvider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
 
@@ -21,7 +21,10 @@ const sepolia = {
   },
 } as const;
 
-const viemClient = createPublicClient({ chain: sepolia, transport: http(RPC_URL) });
+const viemClient = createPublicClient({
+  chain: sepolia,
+  transport: http(RPC_URL),
+});
 
 export type StakeInfo = {
   tokenId: number;
@@ -31,9 +34,16 @@ export type StakeInfo = {
   owner: string;
 };
 
-type RawStakeTuple = readonly [bigint | number, bigint | number, bigint | number, string];
+type RawStakeTuple = readonly [
+  bigint | number,
+  bigint | number,
+  bigint | number,
+  string,
+];
 
-export function stakingContract(readerOrSigner?: ethers.Provider | ethers.Signer) {
+export function stakingContract(
+  readerOrSigner?: ethers.Provider | ethers.Signer,
+) {
   const p = readerOrSigner ?? readProvider;
   return new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, p);
 }
@@ -48,8 +58,8 @@ export async function stakeTokens(
   tokenIds: number[],
   months: number[],
 ) {
-  if (tokenIds.length === 0) throw new Error('No tokens selected');
-  if (tokenIds.length !== months.length) throw new Error('Length mismatch');
+  if (tokenIds.length === 0) throw new Error("No tokens selected");
+  if (tokenIds.length !== months.length) throw new Error("Length mismatch");
   const c = stakingContract(signer);
   const tx = await c.stake(tokenIds, months);
   return await tx.wait();
@@ -61,7 +71,10 @@ export async function unstakeTokens(signer: ethers.Signer, tokenIds: number[]) {
   return await tx.wait();
 }
 
-export async function getStakeInfo(provider: ethers.Provider, tokenId: number): Promise<StakeInfo> {
+export async function getStakeInfo(
+  provider: ethers.Provider,
+  tokenId: number,
+): Promise<StakeInfo> {
   const c = stakingContract(provider);
   const result = (await c.getStakeInfo(tokenId)) as RawStakeTuple;
   return normalizeStakeInfo(tokenId, result);
@@ -84,14 +97,17 @@ export async function getUserStakes(
       contracts: batch.map((id) => ({
         address: STAKING_ADDRESS as `0x${string}`,
         abi: STAKING_ABI_VIEM,
-        functionName: 'getStakeInfo' as const,
+        functionName: "getStakeInfo" as const,
         args: [id],
       })),
     });
 
     res.forEach((result, idx) => {
-      if (result.status !== 'success') return;
-      const info = normalizeStakeInfo(Number(batch[idx]), result.result as RawStakeTuple);
+      if (result.status !== "success") return;
+      const info = normalizeStakeInfo(
+        Number(batch[idx]),
+        result.result as RawStakeTuple,
+      );
       if (
         info.owner &&
         info.owner.toLowerCase() === owner.toLowerCase() &&
@@ -110,7 +126,9 @@ export async function getUserStakes(
 function normalizeStakeInfo(tokenId: number, tuple: RawStakeTuple): StakeInfo {
   const [start, unlock, lockMonthsRaw, owner] = tuple;
   const lockMonths =
-    typeof lockMonthsRaw === 'bigint' ? Number(lockMonthsRaw) : Number(lockMonthsRaw ?? 0);
+    typeof lockMonthsRaw === "bigint"
+      ? Number(lockMonthsRaw)
+      : Number(lockMonthsRaw ?? 0);
   return {
     tokenId,
     startTime: Number(start),

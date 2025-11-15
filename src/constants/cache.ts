@@ -1,6 +1,6 @@
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined";
 
-export const POTENTIALS_KEY = 'potentials-cache';
+export const POTENTIALS_KEY = "potentials-cache";
 export const TTL_MONTH = 60 * 60 * 24 * 30; // seconds
 
 const getStorage = () => (isBrowser ? window.localStorage : undefined);
@@ -9,10 +9,7 @@ export function SetCache(key: string, value: unknown, ttlSeconds: number) {
   const storage = getStorage();
   if (!storage) return;
   const expires = Date.now() + ttlSeconds * 1000;
-  storage.setItem(
-    key,
-    JSON.stringify({ value, expires })
-  );
+  storage.setItem(key, JSON.stringify({ value, expires }));
 }
 
 export function ClearCache(key: string) {
