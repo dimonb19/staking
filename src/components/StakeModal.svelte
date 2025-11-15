@@ -39,6 +39,7 @@
     }
   }
 
+  // Determine modal badge state based on unlock time.
   function deriveStatus(token: TokenState | null) {
     if (!token || !token.isStaked) return 'not-staked';
     const now = Math.floor(Date.now() / 1000);
@@ -88,6 +89,7 @@
     return parts.join(' ');
   }
 
+  // Unstake remains on-chain via ethers; upon success we refresh Graph data for consistency.
   async function handleUnstake() {
     if (!currentToken || !canUnstake || modalToken === null) {
       localError = 'Token is not ready to unstake.';

@@ -2,35 +2,11 @@ import { GRAPHQL_ENDPOINT } from '@/lib/contract';
 
 const POINTS_PER_SECOND = 500_000 / (7 * 24 * 60 * 60);
 
-export type RawStakedNFT = {
-  tokenId: string;
-  votingPower: string;
-  lockMonths: number;
-  stakedAt: string;
-  unlockTime: string;
-  isStaked: boolean;
-};
+// HyperIndex tracks user/global staking stats off-chain. This helper wraps the
+// fetch so the rest of the app can access the same data without rewriting the
+// GraphQL boilerplate.
 
-type RawUser = {
-  totalVotingPower: string;
-  accumulatedPoints: string;
-  stakedNFTCount: number;
-  lastUpdateTime: string;
-};
-
-type RawGlobalState = {
-  totalVotingPower: string;
-  totalStakedNFTs: number;
-};
-
-export type UserStakingData = {
-  stakedNFTs: RawStakedNFT[];
-  totalVotingPower: bigint;
-  accumulatedPoints: number;
-  currentPoints: number;
-  pointsPerSecond: number;
-  stakedNFTCount: number;
-};
+// GraphQL schema fragments used as inputs for normalization.
 
 export async function queryGraphQL<T>(
   query: string,

@@ -1,28 +1,6 @@
 import { writable } from 'svelte/store';
 import { walletAddress, userProvider } from '@stores/auth.svelte';
-
-export type TokenState = {
-  tokenId: number;
-  votingPower: number;
-  lockMonths: number;
-  stakedAt: number;
-  unlockTime: number;
-  isStaked: boolean;
-  selected: boolean;
-};
-
-export type UserStats = {
-  totalVotingPower: bigint;
-  accumulatedPoints: number;
-  currentPoints: number;
-  pointsPerSecond: number;
-  stakedNFTCount: number;
-};
-
-export type GlobalStats = {
-  totalVotingPower: bigint;
-  totalStakedNFTs: number;
-};
+import type { TokenState, UserStats, GlobalStats } from '@/env';
 
 export const connected = writable(false);
 export const address = walletAddress;
@@ -37,3 +15,5 @@ export const busy = writable<'idle' | 'fetch' | 'approve' | 'stake' | 'unstake'>
 export const error = writable<string | null>(null);
 export const notice = writable<string | null>(null);
 export const stakeModalToken = writable<number | null>(null);
+
+export type { TokenState, UserStats, GlobalStats };

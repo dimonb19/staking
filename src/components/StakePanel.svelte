@@ -40,6 +40,7 @@
   let stakingDisabled = true;
   let approveDisabled = true;
 
+  // Rainbow button (React) Mount helper used when wallet isn't connected yet.
   const mountRainbow: Action<HTMLDivElement> = (node) => {
     const root = createRoot(node);
     root.render(createElement(Rainbow));
@@ -50,6 +51,7 @@
     };
   };
 
+  // Map raw GraphQL entries into Svelte-friendly objects.
   function normalizeToken(raw: {
     tokenId: string;
     votingPower: string;
@@ -69,6 +71,7 @@
     };
   }
 
+  // Refresh both user + global snapshots once per wallet load/refresh.
   async function loadStakingData(addr: string) {
     busyStore.set('fetch');
     dataStatus.set('loading');
@@ -109,6 +112,7 @@
     }
   }
 
+  // Approval is still handled on-chain via ethers. Cache status so UI can gate stake button.
   async function refreshApproval(addr: string) {
     if (!stakingReady) return;
     try {
@@ -118,6 +122,7 @@
     }
   }
 
+  // Ping the contract (read-only) to see if staking is paused.
   async function refreshPausedState() {
     try {
       const currentProvider = get(provider) as BrowserProvider | null;
@@ -130,6 +135,7 @@
     }
   }
 
+  // UI-only selection helpers (non-staked tokens only)
   function toggleSelection(tokenId: number, selectedValue: boolean) {
     myTokens.update((tokens) =>
       tokens.map((token) => {
@@ -289,6 +295,7 @@
   $: approveDisabled =
     approved || !stakingReady || !$connected || $busyStore !== 'idle';
 
+  // Formatting helpers for the metric cards.
   function formatBigInt(value?: bigint | null) {
     if (value === undefined || value === null) return '0';
     return value.toString();
