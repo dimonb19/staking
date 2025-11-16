@@ -1,0 +1,634 @@
+// UTILITY CLASSES:
+// tiles-collection: <div> / <section>
+// menu-tile: <a><img><h4></a>; loading-menu-tile: <div><div><span></div>
+// tile: <a><img><h5> <div><img><p></div> </a>; loading-tile: <div><div><span></div>
+
+@use '/src/styles/mixins' as *;
+
+// STORY TILES CONTAINER
+
+.collection-header {
+  position: relative;
+  width: 100vw;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding-inline: 1.5rem;
+  margin-block: 0 -0.5rem;
+  z-index: 50;
+
+  h2 {
+    background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, $deep-red, $blue);
+    filter: brightness(125%) drop-shadow(0 0.25rem 0.25rem rgba(0, 0, 0, 0.75));
+    @include white-txt(0.5);
+  }
+
+  button {
+    position: absolute;
+    bottom: -4.5rem;
+    right: 0.5rem;
+    @include box-shadow;
+  }
+
+  @include respond-up(tablet) {
+    h2 {
+      line-height: 1;
+    }
+
+    button {
+      bottom: 0;
+      right: 1rem;
+      box-shadow: none;
+    }
+  }
+
+  &.dashboard-collection-header {
+    width: 100vw;
+    flex-flow: row wrap;
+    margin-inline: -1.5rem;
+    margin-bottom: -1.5rem;
+    padding-block: 0.5rem;
+    @include navy;
+
+    @include respond-up(tablet) {
+      width: calc(100% + 3rem);
+      justify-content: space-between;
+      margin-inline: 0;
+    }
+  }
+}
+
+.tiles-collection {
+  -webkit-backdrop-filter: blur(1rem);
+  backdrop-filter: blur(1rem);
+  width: 100vw;
+  height: auto;
+  min-height: 15rem;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  // box-shadow: $shadow-plus-inset-glow;
+  animation: transparent-glowing 15s ease infinite;
+  scrollbar-width: thin;
+  scrollbar-color: $transparent-cyan transparent;
+  outline: none !important;
+  border-top: 1px solid $transparent-gray;
+  border-bottom: 1px solid $transparent-gray;
+  @include cyan(0.1);
+
+  @include respond-up(tablet) {
+    min-height: 22rem;
+  }
+
+  &.filtered-tiles {
+    background-color: rgba(75, 112, 50, 0.5) !important;
+  }
+
+  &::-webkit-scrollbar {
+    height: 0.5rem;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 1rem;
+    cursor: pointer;
+    @include light-blue(0.1);
+
+    @include respond-up(tablet) {
+      background-image: linear-gradient(
+        to right,
+        rgba(56, 117, 250, 0.25),
+        rgba(56, 117, 250, 0.5),
+        rgba(56, 117, 250, 0.25)
+      );
+    }
+  }
+
+  &::-webkit-scrollbar-thumb:hover,
+  &::-webkit-scrollbar-thumb:active {
+    background-color: rgba(51, 226, 230, 0.5);
+  }
+
+  &.dashboard-collection {
+    width: 100vw;
+    margin-inline: -1.5rem;
+
+    @include respond-up(small-desktop) {
+      width: calc(100% + 3rem);
+      margin-inline: 0;
+    }
+
+    .empty-title {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+// MENU TILE
+
+.menu-tile {
+  width: calc(50% - 0.5rem);
+  height: 17.5rem;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 1.5rem;
+  box-shadow: $soft-shadow-plus-inset-glow;
+  @include navy;
+  @include cyan(0.75, text);
+
+  &.big-menu-tile {
+    width: 100%;
+  }
+
+  &.highlighted-menu-tile {
+    @include deep-green;
+    @include dark-green(1, text);
+  }
+
+  &:hover:not(.loading-menu-tile),
+  &:active:not(.loading-menu-tile),
+  &:focus-visible:not(.loading-menu-tile) {
+    text-decoration: none;
+    box-shadow: $shadow-plus-inset-glow;
+    outline: none;
+    @include dark-blue(1, text);
+    @include cyan(0.5);
+    @include bright;
+    @include scale-up;
+  }
+
+  img {
+    height: 14.2rem;
+    border-radius: 1rem;
+    aspect-ratio: 1 / 1;
+    @include cyan(0.1);
+    @include box-glow(outset, 0.25);
+  }
+
+  h4 {
+    color: inherit;
+    white-space: wrap;
+  }
+
+  @include respond-up(tablet) {
+    width: 28vw;
+    max-width: 400px;
+    height: auto;
+
+    &.big-menu-tile {
+      width: 28vw;
+    }
+
+    img {
+      height: auto;
+    }
+  }
+
+  @include respond-up(quad-hd) {
+    max-width: 16vw;
+  }
+}
+
+.loading-menu-tile {
+  @extend .menu-tile;
+  cursor: progress;
+
+  div {
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    cursor: inherit;
+    @include cyan(0.1);
+
+    @include respond-up(tablet) {
+      aspect-ratio: 1/1;
+    }
+  }
+
+  span {
+    width: 80%;
+    height: clamp(1.25rem * 1.5, 2.5vw * 1.5, 1.5rem * 1.5);
+    cursor: inherit;
+    @include cyan(0.1);
+  }
+}
+
+// STORY TILE
+
+.tile {
+  width: 10rem;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 1rem;
+  text-decoration: none !important;
+  flex: none;
+  @include blue(0.75);
+  @include white-txt(1);
+  @include box-shadow;
+
+  &:hover:not(.loading-tile),
+  &:active:not(.loading-tile),
+  &:focus-visible:not(.loading-tile) {
+    @include dark-blue(1, text);
+    @include blue(0.9, bg, bright);
+    @include bright;
+    @include scale-up;
+    @include box-shadow(deep);
+  }
+
+  img {
+    width: 100%;
+    min-height: 5rem;
+    height: 100%;
+    border-radius: 0.75rem;
+    @include dark-blue(0.5);
+    @include box-shadow(soft, inset);
+  }
+
+  h5 {
+    padding-inline: 1rem;
+    color: inherit;
+    white-space: wrap;
+  }
+
+  .tile-data {
+    width: 100%;
+    flex-flow: column nowrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    background-color: $transparent-black;
+    @include box-shadow(soft, inset);
+  }
+
+  @include respond-up(tablet) {
+    width: 15rem;
+
+    img {
+      min-height: 10rem;
+    }
+  }
+
+  @include respond-up(quad-hd) {
+    width: 10vw;
+  }
+
+  &.gated-story {
+    @include orange(0.85);
+
+    img {
+      @include dark-red(0.5);
+    }
+
+    &:hover,
+    &:active,
+    &:focus-visible {
+      @include orange;
+      @include orange(1, text, bright);
+      @include bright(100%);
+
+      h5 {
+        @include dark-red(1, text);
+      }
+
+      .gatings {
+        @include orange(1, text, bright);
+
+        svg {
+          cursor: inherit;
+          fill: $bright-orange;
+        }
+      }
+    }
+  }
+
+  .gatings {
+    display: none;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    @include dark-red(0.5);
+    @include white-txt(soft);
+    @include box-shadow(soft, inset);
+
+    svg {
+      fill: $soft-white;
+    }
+
+    p {
+      white-space: wrap;
+    }
+
+    @include respond-up(tablet) {
+      display: flex;
+    }
+  }
+}
+
+.loading-tile {
+  transition: all 0.3s ease;
+  @extend .tile;
+  cursor: progress;
+
+  div {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.75rem;
+    cursor: inherit;
+    @include dark-blue(0.5);
+  }
+
+  span {
+    width: calc(100% - 2rem);
+    height: clamp(1.125rem * 1.5, 2.5vw * 1.5, 1.25rem * 1.5);
+    cursor: inherit;
+    @include dark-blue(0.5);
+  }
+
+  // Fallback if no support
+  opacity: 1;
+  transform: none;
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.purple-tile {
+  @extend .tile;
+  @include purple;
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(&:disabled) {
+    @include purple(1, bg, bright);
+    @include dark-red(1, text);
+  }
+}
+
+.green-tile {
+  @extend .tile;
+  @include deep-green(0.85);
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(&:disabled) {
+    @include deep-green;
+    @include dark-green(1, text);
+  }
+}
+
+.rose-tile {
+  @extend .tile;
+  @include rose(0.85);
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(&:disabled) {
+    @include rose;
+    @include dark-red(1, text);
+  }
+}
+
+.orange-tile {
+  @extend .tile;
+  @include orange(0.85);
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(&:disabled) {
+    @include orange(1, bg, bright);
+    @include dark-red(1, text);
+  }
+}
+
+.gray-tile {
+  @extend .tile;
+  @include gray(0.25);
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(&:disabled) {
+    @include light-blue(0.5);
+    @include cyan(1, text);
+  }
+}
+
+.potential-tile {
+  @extend .tile;
+  @include purple(0.25);
+
+  img {
+    @include dark-border;
+  }
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(&:disabled) {
+    background-color: $royal-purple;
+    @include orange(1, text, bright);
+  }
+}
+
+// SMALL TILES
+
+.small-tile {
+  width: 100%;
+
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  flex: none;
+
+  transition: all 0.3s ease;
+
+  // Fallback if no support
+  opacity: 1;
+  transform: none;
+  filter: none;
+
+  h5 {
+    white-space: nowrap;
+  }
+
+  & > p {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    @include dark-blue(0.5);
+    @include box-shadow(soft, inset);
+  }
+
+  @include box-shadow;
+  @include white-txt(soft);
+  @include gray(0.5);
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(:disabled) {
+    @include white-txt;
+    @include scale-up(soft);
+    @include box-shadow(deep);
+  }
+
+  &:disabled {
+    @include gray(0.25);
+
+    p {
+      @include white-txt(0.5);
+    }
+  }
+
+  @include respond-up(tablet) {
+    width: auto;
+  }
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.975) skew(1deg, -1deg);
+    filter: brightness(125%) contrast(125%);
+  }
+}
+
+.small-purple-tile {
+  @extend .small-tile;
+  @include purple;
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(:disabled) {
+    @include purple(1, bg, bright);
+  }
+}
+
+.small-orange-tile {
+  @extend .small-tile;
+  @include orange(0.85);
+
+  & > p {
+    @include dark-red(0.5);
+  }
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(:disabled) {
+    @include orange(1, bg, bright);
+  }
+}
+
+.small-rose-tile {
+  @extend .small-tile;
+  @include rose(0.85);
+
+  & > p {
+    @include dark-red(0.5);
+  }
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(:disabled) {
+    @include rose(1, bg, bright);
+  }
+}
+
+.small-green-tile {
+  @extend .small-tile;
+  @include deep-green;
+
+  & > p {
+    @include dark-green(0.5);
+  }
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(:disabled) {
+    @include bright;
+  }
+}
+
+.small-blue-tile {
+  @extend .small-tile;
+  @include blue;
+
+  & > p {
+    @include dark-blue(0.5);
+  }
+
+  &:hover:not(&:disabled),
+  &:active:not(&:disabled),
+  &:focus-visible:not(:disabled) {
+    @include bright;
+  }
+}
+
+// USAGE: &::after { content: 'Label'; }
+// ADDITIONAL CLASSES: &.selected / &.active
+.small-tile-addon {
+  position: relative;
+  margin-top: 0.5rem;
+
+  &.selected {
+    border-top-left-radius: 0;
+
+    p {
+      @include dark-green(0.5);
+    }
+  }
+
+  &.active {
+    border-top-left-radius: 0;
+    pointer-events: none;
+  }
+
+  &::after {
+    position: absolute;
+    top: -1rem;
+    left: 0;
+    padding-inline: 0.5rem;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    color: $dark-blue;
+    background-color: inherit;
+
+    transition: all 0.3s ease;
+
+    // Fallback if no support
+    opacity: 1;
+    transform: none;
+
+    @include font(caption);
+
+    @starting-style {
+      opacity: 0;
+      transform: translate(-50%, 50%) scale(0);
+    }
+  }
+}

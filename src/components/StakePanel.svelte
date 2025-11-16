@@ -1,12 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { Action } from 'svelte/action';
   import { get } from 'svelte/store';
-  import { createElement } from 'react';
-  import { createRoot } from 'react-dom/client';
+
   import type { BrowserProvider } from 'ethers';
 
-  import Rainbow from '@components/web3/Rainbow.tsx';
   import { setApprovalForAll, isApprovedForAll } from '@/lib/potentials';
   import {
     address,
@@ -26,7 +23,8 @@
   import { stakingContract, isPaused, stakeTokens } from '@/lib/staking';
   import { getUserStakingData, getGlobalStats } from '@/lib/indexer';
   import { STAKING_ADDRESS } from '@/lib/contract';
-  import StakeModal from './StakeModal.svelte';
+
+  import StakeModal from '@components/StakeModal.svelte';
 
   const LOCK_OPTIONS = [1, 3, 6, 12];
   const DEFAULT_LOCK = 6;
@@ -38,17 +36,6 @@
   let selectionCount = 0;
   let stakingDisabled = true;
   let approveDisabled = true;
-
-  // Rainbow button (React) Mount helper used when wallet isn't connected yet.
-  const mountRainbow: Action<HTMLDivElement> = (node) => {
-    const root = createRoot(node);
-    root.render(createElement(Rainbow));
-    return {
-      destroy() {
-        root.unmount();
-      },
-    };
-  };
 
   // Map raw GraphQL entries into Svelte-friendly objects.
   function normalizeToken(raw: {
@@ -329,7 +316,6 @@
       <h2>Connect your wallet</h2>
       <p>Use the Rainbow button to load your Potentials NFTs.</p>
     </div>
-    <div class="rainbow-slot" use:mountRainbow></div>
   </section>
 {:else}
   <section class="panel">

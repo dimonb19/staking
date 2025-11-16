@@ -4,6 +4,10 @@ import '/src/styles/index.scss';
 import { SEO } from 'astro-seo';
 import { seoConfig } from '../../utils/seoConfig';
 
+import Navigation from '@components/Navigation.svelte';
+import ToastContainer from '@components/utils/ToastContainer.svelte';
+import Background from '@components/utils/Background.svelte';
+
 type LayoutProps = {
   title?: string;
   description?: string;
@@ -78,6 +82,13 @@ const absoluteImageURL = image.startsWith('http')
     />
   </head>
   <body>
-    <slot />
+    <ToastContainer client:idle />
+
+    <main>
+      <Navigation client:idle />
+      <slot />
+    </main>
+
+    <Background client:idle />
   </body>
 </html>

@@ -1,0 +1,410 @@
+@use 'sass:map';
+@use './breakpoints' as *;
+
+$font: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+
+$font-scale: (
+  'body': clamp(1rem, 1.5vw, 1.05rem),
+  // 16–18px
+  'small': clamp(0.875rem, 1.2vw, 1rem),
+  // 14–16px
+  'caption': clamp(0.75rem, 1vw, 0.875rem),
+  // 12–14px
+  // 'h1': clamp(2rem, 5vw, 3.5rem),
+  'h1': clamp(1.5rem, 3vw, 2.5rem),
+  // 32–56px
+  'h2': clamp(1.75rem, 4vw, 3rem),
+  // 28–48px
+  'h3': clamp(1.5rem, 3vw, 2.5rem),
+  // 24–40px
+  'h4': clamp(1.25rem, 2.5vw, 1.5rem),
+  // 20–24px
+  'h5': clamp(1.125rem, 1.5vw, 1.25rem), // 18-20px
+);
+
+@mixin font($size-key: 'body') {
+  @if map.has-key($font-scale, $size-key) {
+    font-size: map.get($font-scale, $size-key);
+    line-height: 1.5;
+
+    @if $size-key == 'h1' {
+      @include respond-up(tablet) {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+      }
+    }
+
+    // Static value for wide screens
+    @include respond-up(quad-hd) {
+      @if $size-key == 'body' {
+        font-size: 0.65vw;
+      } @else if $size-key == 'small' {
+        font-size: 0.6vw;
+      } @else if $size-key == 'caption' {
+        font-size: 0.53vw;
+      } @else if $size-key == 'h1' {
+        font-size: 1.88vw;
+      } @else if $size-key == 'h2' {
+        font-size: 1.56vw;
+      } @else if $size-key == 'h3' {
+        font-size: 1.25vw;
+      } @else if $size-key == 'h4' {
+        font-size: 0.94vw;
+      } @else if $size-key == 'h5' {
+        font-size: 0.78vw;
+      }
+    }
+  } @else {
+    @warn "Font size `#{$size-key}` not found in $font-scale map.";
+  }
+}
+
+:global(:where(h1)) {
+  @include font(h1);
+}
+
+:global(:where(h2)) {
+  @include font(h2);
+}
+
+:global(:where(h3)) {
+  @include font(h3);
+}
+
+:global(:where(h4)) {
+  @include font(h4);
+}
+
+:global(:where(h5, input, select, textarea)) {
+  @include font(h5);
+}
+
+:global(:where(.validation)) {
+  @include font(small);
+}
+
+:global(:where(p, label, button)) {
+  @include font(body);
+}
+
+// FONT SIZES
+
+:global(.caption-font) {
+  @include font(caption);
+}
+
+:global(.small-font) {
+  @include font(small);
+}
+
+:global(.body-font) {
+  @include font(body);
+}
+
+:global(.h5-font) {
+  @include font(h5);
+}
+
+:global(.h4-font) {
+  @include font(h4);
+}
+
+:global(.h3-font) {
+  @include font(h3);
+}
+
+:global(.h2-font) {
+  @include font(h2);
+}
+
+:global(.h1-font) {
+  @include font(h1);
+}
+
+// Hanken Grotesk
+// 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-MediumItalic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-SemiBoldItalic.woff2') format('woff2');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGrotesk-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+// PT Serif Caption font
+
+@font-face {
+  font-family: 'PT Serif Caption';
+  src: url('/fonts/PTSerifCaption-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PT Serif Caption';
+  src: url('/fonts/PTSerifCaption-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+// LORA font
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/Lora-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/Lora-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/Lora-BoldItalic.woff2') format('woff2');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/Lora-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+// ROBOTO font
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-BoldItalic.woff2') format('woff2');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+// MERRIWEATHER font
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('/fonts/Merriweather24pt-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('/fonts/Merriweather24pt-BoldItalic.woff2') format('woff2');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('/fonts/Merriweather24pt-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('/fonts/Merriweather24pt-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+// COURIER PRIME font
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/CourierPrime-BoldItalic.woff2') format('woff2');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/CourierPrime-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/CourierPrime-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/CourierPrime-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+// COMIC NEUE font
+
+@font-face {
+  font-family: 'Comic Neue';
+  src: url('/fonts/ComicNeue-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comic Neue';
+  src: url('/fonts/ComicNeue-Italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comic Neue';
+  src: url('/fonts/ComicNeue-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comic Neue';
+  src: url('/fonts/ComicNeue-BoldItalic.woff2') format('woff2');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+// CAVEAT font (no italic)
+
+@font-face {
+  font-family: 'Caveat';
+  src: url('/fonts/Caveat-Bold.woff2') format('woff2');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Caveat';
+  src: url('/fonts/Caveat-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

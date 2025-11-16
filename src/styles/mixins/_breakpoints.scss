@@ -1,0 +1,32 @@
+@use 'sass:map';
+
+@mixin auto-width {
+  width: auto;
+  max-width: min(95%, 80rem);
+}
+
+// Responsive styling up to 2k resolution
+$breakpoints: (
+  'mobile': 0,
+  'tablet': 768px,
+  'small-desktop': 1024px,
+  'large-desktop': 1440px,
+  'full-hd': 1920px,
+  'quad-hd': 2560px, // 'ultra-hd': 3840px,
+);
+
+@mixin respond-up($breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (min-width: map.get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  } @else {
+    @warn "Breakpoint `#{$breakpoint}` not found.";
+  }
+}
+
+@mixin mobile-only {
+  @media (max-width: 768px) {
+    @content;
+  }
+}

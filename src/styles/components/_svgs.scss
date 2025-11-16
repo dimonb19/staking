@@ -1,0 +1,32 @@
+@use '/src/styles/mixins' as *;
+
+svg {
+  min-width: 1.5rem;
+  width: 2rem;
+  fill: $soft-white;
+  stroke: $soft-white;
+}
+
+a svg,
+button svg {
+  width: inherit;
+  fill: inherit;
+  stroke: inherit;
+}
+
+.copied {
+  p {
+    color: $green !important;
+  }
+
+  svg {
+    fill: $green !important;
+    stroke: $green !important;
+    filter: none !important;
+  }
+}
+
+.sorting {
+  fill: $cyan;
+  stroke: $cyan;
+}

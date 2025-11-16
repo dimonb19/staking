@@ -1,0 +1,306 @@
+// COLOR VARIABLES: (soft / transparent) white, (soft / transparent / dark) cyan, (light / bright / dark) blue, navy, (deep) green, (dark) red, (bright) orange, (bright) purple, (acid / bright) rose
+// COLOR MIXINS: cyan, light-blue, blue (bright), navy, dark-blue, green, red, dark-red, gray, orange (bright), indigo (bright), rose (bright)
+
+// BG CLASSES (-bg): (soft) cyan, blue, ((semi)transparent) dark-blue
+// TEXT CLASSES (-txt): (soft / transparent) white, green, red
+
+$white: rgb(255, 255, 255); // @mixin: white-txt (color:)
+$soft-white: rgba(255, 255, 255, 0.75);
+$transparent-white: rgba(255, 255, 255, 0.5);
+$beige: rgb(250, 238, 209); // no mixin #faeed1
+$transparent-black: rgba(0, 0, 0, 0.5);
+
+$cyan: rgb(51, 226, 230); // #33e2e6
+$soft-cyan: rgba(51, 226, 230, 0.75);
+$transparent-cyan: rgba(51, 226, 230, 0.5);
+$deep-cyan: rgb(60, 180, 185); // no mixin #3cb4b9
+// $dark-cyan: rgb(0, 139, 148); // no mixin
+$adobe-dark-cyan: #419496; // no mixin
+
+$light-blue: rgb(56, 117, 250); // #3875FA
+$bright-blue: rgb(45, 90, 216); // #2d5ad8
+$blue: rgb(36, 64, 189); // #2440BD
+$navy: rgb(22, 30, 95); // #161E5F
+$dark-blue: rgb(1, 0, 32); // #010020
+
+$green: rgb(0, 185, 55); // #00B937
+$adobe-soft-green: rgb(60, 171, 90); // #3CAB5A
+$deep-green: rgb(75, 112, 50); // #4b7032
+$dark-green: rgb(0, 25, 6); // #001906
+
+$red: rgb(255, 60, 64); // #ff3c40
+$adobe-strong-red: #eb1917;
+$deep-red: rgb(155, 20, 38); // #9b1426
+$adobe-soft-red: #ab3c46;
+$adobe-deep-red: #eb172a;
+$dark-red: rgb(32, 0, 1); // #200001
+
+$bright-orange: rgb(255, 165, 40); // #ffa528
+$orange: rgb(255, 140, 0); // #FF8C00
+$deep-orange: rgb(255, 100, 0); // no mixin
+$adobe-deep-orange: #eb6717;
+$dark-orange: rgb(182, 48, 20); // no mixin
+
+$adobe-yellow: #ebdc17;
+$adobe-deep-yellow1: #ebc717;
+$adobe-deep-yellow2: #ebab17;
+$adobe-deep-yellow3: #ebaf17;
+$adobe-light-brown: #ab893c;
+$adobe-brown: #ab663c;
+
+$purple: rgb(95, 80, 160); // #5f50a0
+$adobe-purple: #5a4196;
+$bright-purple: rgb(160, 120, 255); // #A078FF
+$royal-purple: rgb(47, 28, 92); // #2F1C5C
+
+$acid-pink: rgb(255, 70, 150); // no mixin
+$rose: rgb(200, 140, 140); // #c88c8c
+$bright-rose: rgb(230, 175, 175); // #e6afaf
+
+$gray: rgb(150, 150, 150);
+$transparent-gray: rgba(150, 150, 150, 0.25);
+$dark-gray: rgb(16, 16, 16);
+
+@mixin white-txt($opacity: 'normal') {
+  @if $opacity == 'normal' {
+    color: rgba(255, 255, 255, 0.9);
+  } @else if $opacity == 'soft' {
+    color: rgba(255, 255, 255, 0.75);
+  } @else {
+    color: rgba(255, 255, 255, $opacity); // Custom opacity
+  }
+}
+
+@mixin cyan($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(51, 226, 230, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(51, 226, 230, $opacity);
+  }
+}
+
+@mixin light-blue($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(56, 117, 250, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(56, 117, 250, $opacity);
+  }
+}
+
+@mixin blue($opacity: 1, $type: 'bg', $state: 'normal') {
+  @if $type == 'bg' {
+    @if $state == 'normal' {
+      background-color: rgba(36, 65, 189, $opacity);
+    } @else {
+      background-color: rgba(45, 90, 216, $opacity);
+    }
+  } @else if $type == 'text' {
+    @if $state == 'normal' {
+      color: rgba(36, 65, 189, $opacity);
+    } @else {
+      color: rgba(45, 90, 216, $opacity);
+    }
+  }
+}
+
+@mixin navy($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(22, 30, 95, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(22, 30, 95, $opacity);
+  }
+}
+
+@mixin dark-blue($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(1, 0, 32, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(1, 0, 32, $opacity);
+  }
+}
+
+@mixin green($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(0, 185, 55, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(0, 185, 55, $opacity);
+  }
+}
+
+@mixin deep-green($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(75, 112, 50, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(75, 112, 50, $opacity);
+  }
+}
+
+@mixin dark-green($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(0, 25, 6, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(0, 25, 6, $opacity);
+  }
+}
+
+@mixin red($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(255, 60, 64, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(255, 60, 64, $opacity);
+  }
+}
+
+@mixin deep-red($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(155, 20, 38, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(155, 20, 38, $opacity);
+  }
+}
+
+@mixin dark-red($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(32, 0, 1, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(32, 0, 1, $opacity);
+  }
+}
+
+@mixin gray($opacity: 1, $type: 'bg') {
+  @if $type == 'bg' {
+    background-color: rgba(150, 150, 150, $opacity);
+  } @else if $type == 'text' {
+    color: rgba(150, 150, 150, $opacity);
+  }
+}
+
+@mixin orange($opacity: 1, $type: 'bg', $state: 'normal') {
+  @if $type == 'bg' {
+    @if $state == 'normal' {
+      background-color: rgba(255, 140, 0, $opacity);
+    } @else {
+      background-color: rgba(255, 165, 40, $opacity);
+    }
+  } @else if $type == 'text' {
+    @if $state == 'normal' {
+      color: rgba(255, 140, 0, $opacity);
+    } @else if $state == 'bright' {
+      color: rgba(255, 165, 40, $opacity);
+    }
+  }
+}
+
+@mixin purple($opacity: 1, $type: 'bg', $state: 'normal') {
+  @if $type == 'bg' {
+    @if $state == 'normal' {
+      background-color: rgba(95, 80, 160, $opacity);
+    } @else {
+      background-color: rgba(160, 120, 255, $opacity);
+    }
+  } @else if $type == 'text' {
+    @if $state == 'normal' {
+      color: rgba(95, 80, 160, $opacity);
+    } @else {
+      color: rgba(160, 120, 255, $opacity);
+    }
+  }
+}
+
+@mixin rose($opacity: 1, $type: 'bg', $state: 'normal') {
+  @if $type == 'bg' {
+    @if $state == 'normal' {
+      background-color: rgba(200, 140, 140, $opacity);
+    } @else {
+      background-color: rgba(230, 175, 175, $opacity);
+    }
+  } @else if $type == 'text' {
+    @if $state == 'normal' {
+      color: rgba(200, 140, 140, $opacity);
+    } @else {
+      color: rgba(230, 175, 175, $opacity);
+    }
+  }
+}
+
+// Background colors
+
+:global(.soft-cyan-bg) {
+  @include cyan(0.75);
+}
+
+:global(.cyan-bg) {
+  @include cyan;
+}
+
+:global(.blue-bg) {
+  @include blue;
+}
+
+:global(.dark-blue-bg) {
+  @include dark-blue;
+}
+
+:global(.semi-transparent-dark-bg) {
+  @include dark-blue(0.75);
+}
+
+:global(.transparent-dark-bg) {
+  @include dark-blue(0.5);
+}
+
+:global(.gray-bg) {
+  @include gray(0.75);
+}
+
+:global(.transparent-gray-bg) {
+  @include gray(0.25);
+}
+
+// Text colors
+
+:global(.white-txt) {
+  @include white-txt;
+}
+
+:global(.soft-white-txt) {
+  @include white-txt(soft);
+}
+
+:global(.transparent-white-txt) {
+  @include white-txt(0.5);
+}
+
+:global(.cyan-txt) {
+  @include cyan(1, text);
+}
+
+:global(.green-txt) {
+  @include green(1, text);
+}
+
+:global(.red-txt) {
+  @include red(1, text);
+}
+
+:global(.dark-txt) {
+  @include dark-blue(1, text);
+}
+
+// General definitions
+
+:global(:where(h1)) {
+  @include cyan(1, text);
+}
+
+:global(:where(h4, h5)) {
+  @include white-txt;
+}
+
+:global(:where(label)) {
+  @include white-txt((soft));
+}
+
+:global(:where(.validation)) {
+  @include red(1, text);
+}

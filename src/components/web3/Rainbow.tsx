@@ -19,7 +19,6 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 /* ---- Svelte stores & helpers ------------------------------------ */
 import { walletAddress, username, userProvider } from '@stores/auth.svelte';
-import { ClearCache, POTENTIALS_KEY } from '@constants/cache';
 
 /* ------------------------------------------------------------------ */
 /* 1.  Global wagmi / RainbowKit config (must not re‑create on render) */
@@ -75,7 +74,6 @@ function useSyncStores() {
 
     onDisconnect() {
       /* ensure surrounding Svelte UI notices logout */
-      ClearCache(POTENTIALS_KEY);
       location.reload();
     },
   });
@@ -103,23 +101,23 @@ const RainbowConnectInner: FC = () => {
 
         if (!connected) {
           return (
-            <button className="orange-btn" onClick={openConnectModal}>
-              Sign&nbsp;in
+            <button className="rainbow-btn" onClick={openConnectModal}>
+              Sign&nbsp;In
             </button>
           );
         }
 
         if (chain.unsupported) {
           return (
-            <button className="orange-btn" onClick={openChainModal}>
+            <button className="rainbow-btn" onClick={openChainModal}>
               Wrong&nbsp;network
             </button>
           );
         }
 
         return (
-          <button className="orange-btn" onClick={openAccountModal}>
-            Sign&nbsp;out
+          <button className="rainbow-btn" onClick={openAccountModal}>
+            Sign&nbsp;Out
           </button>
         );
       }}

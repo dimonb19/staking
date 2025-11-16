@@ -1,0 +1,338 @@
+// ANIMATION CLASSES: fade-in, loading-animation, shimmer, loading-logo
+
+@mixin bright($intensity: 125%) {
+  filter: brightness($intensity);
+}
+
+@mixin grayscale($intensity: 100%) {
+  filter: grayscale($intensity);
+}
+
+@mixin scale($intensity: 1.05, $direction: 'both') {
+  @if $direction == 'x' {
+    transform: scaleX($intensity);
+  } @else if $direction == 'y' {
+    transform: scaleY($intensity);
+  } @else {
+    transform: scale($intensity);
+  }
+}
+
+@mixin scale-up($intensity: 'deep') {
+  @if $intensity == 'soft' {
+    transform: scale(1.025) translateY(-0.25rem);
+  } @else if $intensity == 'deep' {
+    transform: scale(1.025) translateY(-0.5rem);
+  } @else {
+    transform: scale($intensity) translateY(-0.5rem);
+  }
+}
+
+// ANIMATIONS
+
+@keyframes shimmer {
+  0%,
+  25% {
+    background-position: 125% 0;
+  }
+  50% {
+    @include bright;
+  }
+  75%,
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes loading-logo {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+    @include grayscale;
+  }
+  10% {
+    transform: scale(1.5);
+    opacity: 1;
+    @include bright;
+  }
+  20% {
+    transform: scale(1);
+    opacity: 1;
+    filter: none;
+  }
+  100% {
+    transform: scale(2) rotate(-1080deg);
+    opacity: 0;
+  }
+}
+
+@keyframes waving {
+  0% {
+    transform: scale(1) skewY(1deg);
+  }
+  25% {
+    transform: scaleX(1.02) skewX(-4deg);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  75% {
+    transform: scaleY(1.03) skewX(3deg);
+  }
+  100% {
+    transform: scale(1) skewY(1deg);
+  }
+}
+
+@keyframes button-glowing {
+  0% {
+    background-color: rgba(51, 226, 230, 0.5);
+  }
+  33% {
+    background-color: rgba(160, 120, 255, 0.5);
+  }
+  66% {
+    background-color: rgba(56, 117, 250, 0.5);
+  }
+  100% {
+    background-color: rgba(51, 226, 230, 0.5);
+  }
+}
+
+@keyframes text-glowing {
+  0% {
+    color: rgb(51, 226, 230);
+  }
+  33% {
+    color: rgb(160, 120, 255);
+  }
+  66% {
+    color: rgb(56, 117, 250);
+  }
+  100% {
+    color: rgb(51, 226, 230);
+  }
+}
+
+@keyframes dark-glowing {
+  0% {
+    background-color: rgba(1, 0, 32, 0.5);
+  }
+  33% {
+    background-color: rgba(32, 1, 0, 0.5);
+  }
+  66% {
+    background-color: rgba(0, 25, 6, 0.5);
+  }
+  100% {
+    background-color: rgba(1, 0, 32, 0.5);
+  }
+}
+
+@keyframes dark-glowing-opaque {
+  0% {
+    background-color: rgba(1, 0, 32, 0.75);
+  }
+  33% {
+    background-color: rgba(32, 1, 0, 0.75);
+  }
+  66% {
+    background-color: rgba(0, 25, 6, 0.75);
+  }
+  100% {
+    background-color: rgba(1, 0, 32, 0.75);
+  }
+}
+
+@keyframes live-border {
+  0% {
+    --cta-angle: 0deg;
+    --cta-sweep: 180deg;
+  }
+  100% {
+    --cta-angle: 180deg;
+    --cta-sweep: 360deg;
+  }
+  100% {
+    --cta-angle: 360deg;
+    --cta-sweep: 180deg;
+  }
+}
+
+@keyframes transparent-glowing {
+  0% {
+    background-color: rgba(51, 226, 230, 0.1);
+  }
+  33% {
+    background-color: rgba(160, 120, 255, 0.1);
+  }
+  66% {
+    background-color: rgba(56, 117, 250, 0.1);
+  }
+  100% {
+    background-color: rgba(51, 226, 230, 0.1);
+  }
+}
+
+@keyframes rotate-animation {
+  0% {
+    transform: none;
+  }
+  50% {
+    @include bright;
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-animation {
+  0% {
+    opacity: 0.2;
+    @include bright(100%);
+  }
+  50% {
+    opacity: 0.9;
+    @include bright;
+  }
+  100% {
+    opacity: 0.2;
+    @include bright(100%);
+  }
+}
+
+@keyframes scaling {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.01);
+  }
+  50% {
+    transform: scale(0.99);
+  }
+  75% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes progress-bar {
+  0% {
+    width: 100%;
+    background-color: green;
+  }
+  100% {
+    width: 0%;
+    background-color: red;
+  }
+}
+
+@keyframes bg-animation {
+  0% {
+    transform: scale(1) skew(15deg, -15deg);
+    filter: none;
+  }
+  50% {
+    transform: scale(1.25) skew(-15deg, 15deg);
+    filter: brightness(50%);
+  }
+  100% {
+    transform: scale(1) skew(15deg, -15deg);
+    filter: none;
+  }
+}
+
+// General definitions
+
+:global(.loading-animation) {
+  background-image: linear-gradient(
+    45deg,
+    rgba(51, 226, 230, 0),
+    rgba(51, 226, 230, 0),
+    rgba(51, 226, 230, 0.1),
+    rgba(51, 226, 230, 0),
+    rgba(51, 226, 230, 0)
+  );
+  background-size: 500% auto;
+  animation: shimmer 2s ease infinite;
+}
+
+:global(.shimmer) {
+  @extend :global(.loading-animation);
+  animation-iteration-count: 1;
+}
+
+:global(.loading-logo) {
+  width: 10rem;
+  aspect-ratio: 1 / 1;
+  opacity: 0;
+  transform: scale(0);
+  @include grayscale;
+  animation: loading-logo 5s cubic-bezier(0.14, 0.75, 0.2, 1) forwards;
+}
+
+:global(.fade-in) {
+  transition: all 0.3s ease;
+
+  // Fallback if no support
+  opacity: 1;
+  transform: none;
+  filter: none;
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.975) skew(1deg, -1deg);
+    filter: brightness(125%) contrast(125%);
+  }
+}
+
+:global(.waving) {
+  animation: waving 6s ease infinite;
+}
+
+:global(.button-glowing) {
+  animation: button-glowing 15s linear infinite;
+}
+
+:global(.text-glowing) {
+  animation: text-glowing 15s linear infinite;
+}
+
+:global(.dark-glowing) {
+  animation: dark-glowing 15s linear infinite;
+}
+
+:global(.dark-glowing-opaque) {
+  animation: dark-glowing-opaque 15s linear infinite;
+}
+
+:global(.transparent-glowing) {
+  animation: transparent-glowing 15s linear infinite;
+}
+
+:global(.rotate-animation) {
+  animation: rotate-animation 2s linear infinite;
+}
+
+:global(.pulse-animation) {
+  animation: pulse-animation 6s ease infinite;
+}
+
+:global(.scaling) {
+  animation: scaling 15s ease infinite;
+}
+
+:global(.progress-bar span) {
+  animation: progress-bar 10s linear forwards;
+}
+
+:global(.bg-animation) {
+  animation: bg-animation 60s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}

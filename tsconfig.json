@@ -8,7 +8,8 @@
       "@constants/*": ["src/constants/*"],
       "@lib/*": ["src/lib/*"],
       "@components/*": ["src/components/*"]
-    }
+    },
+    "ignoreDeprecations": "6.0"
   },
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"]

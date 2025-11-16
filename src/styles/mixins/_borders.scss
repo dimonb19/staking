@@ -1,0 +1,77 @@
+// CLASSES: cyan (soft), dark, green, red (outline), wavy-mask-left-right
+
+@mixin white-border($opacity: 1) {
+  border: 1px solid rgba(255, 255, 255, $opacity);
+}
+
+@mixin gray-border($opacity: 0.25) {
+  border: 1px solid rgba(150, 150, 150, $opacity);
+}
+
+@mixin cyan-border($opacity: 1, $style: solid, $width: 1px) {
+  border-width: $width;
+  border-style: $style;
+  border-color: rgba(51, 226, 230, $opacity);
+}
+
+@mixin dark-border($opacity: 1) {
+  border: 1px solid rgba(1, 0, 32, $opacity);
+}
+
+@mixin orange-border($opacity: 1) {
+  border: 1px solid rgba(255, 140, 0, $opacity);
+}
+
+@mixin green-border($opacity: 1) {
+  border: 1px solid rgba(0, 185, 55, $opacity) !important;
+}
+
+@mixin red-border($opacity: 1) {
+  border: 1px solid rgba(255, 50, 50, $opacity) !important;
+}
+
+:global(.cyan-border-transparent) {
+  @include cyan-border(0.25);
+}
+
+:global(.cyan-border-soft) {
+  @include cyan-border(0.5);
+}
+
+:global(.cyan-border) {
+  @include cyan-border;
+}
+
+:global(.dark-border) {
+  @include dark-border;
+}
+
+:global(.green-border) {
+  @include green-border;
+}
+
+:global(.red-border) {
+  @include red-border;
+}
+
+:global(.red-outline) {
+  outline: 1.5px solid rgba(255, 50, 50, 0.75);
+}
+
+// WAVY MASK
+
+$wavy-mask-left-right:
+  radial-gradient(111.8px at 150px 50%, #000 99%, #0000 101%) 0
+    calc(50% - 100px) / 51% 200px repeat-y,
+  radial-gradient(111.8px at -100px 50%, #0000 99%, #000 101%) 50px 50% /
+    calc(51% - 50px) 200px repeat-y,
+  radial-gradient(111.8px at calc(100% - 150px) 50%, #000 99%, #0000 101%) 100%
+    calc(50% - 100px) / 51% 200px repeat-y,
+  radial-gradient(111.8px at calc(100% + 100px) 50%, #0000 99%, #000 101%)
+    calc(100% - 50px) 50% / calc(51% - 50px) 200px repeat-y;
+
+:global(.wavy-mask-left-right) {
+  padding-inline: 5rem !important;
+  -webkit-mask: $wavy-mask-left-right;
+  mask: $wavy-mask-left-right;
+}
