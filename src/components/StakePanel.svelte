@@ -7,6 +7,7 @@
     address,
     provider,
     connected,
+    walletReady,
     myTokens,
     userStats,
     globalStats,
@@ -29,7 +30,7 @@
   import WalletConnect from '@components/web3/WalletConnect.svelte';
   import RefreshSVG from '@components/icons/Refresh.svelte';
   import ContractSVG from '@components/icons/Contract.svelte';
-  import Contract from '@components/icons/Contract.svelte';
+  import LoadingSVG from '@components/icons/Loading.svelte';
 
   const LOCK_OPTIONS = [1, 3, 6, 12];
   const DEFAULT_LOCK = 6;
@@ -316,13 +317,6 @@
     <header class="flex pad pad-inline shad">
       <h4>Potentials Staking</h4>
       <span class="flex-row flex-wrap">
-        <!-- <button
-          class="orange-btn"
-          onclick={onRefreshClick}
-          disabled={$busyStore === 'fetch'}
-        >
-          {$busyStore === 'fetch' ? 'Fetching…' : 'Refresh'}
-        </button> -->
         <RefreshSVG
           onclick={onRefreshClick}
           text={$busyStore === 'fetch' ? 'Fetching…' : 'Refresh'}
@@ -337,17 +331,6 @@
               : 'Approve staking contract'}
           disabled={approveDisabled}
         />
-        <!-- <button
-          class="orange-btn"
-          onclick={handleApprove}
-          disabled={approveDisabled}
-        >
-          {approved
-            ? 'Approved'
-            : $busyStore === 'approve'
-              ? 'Approving…'
-              : 'Approve staking contract'}
-        </button> -->
       </span>
     </header>
 
@@ -503,11 +486,22 @@
     </div>
   {:else}
     <div class="container">
-      <WalletConnect
-        buttonClassName="cta"
-        signInLabel="Sign In With Web3 Wallet"
-      />
-      <p class="validation">Connect your web3 wallet to load Potentials NFTs</p>
+      <span hidden={!$walletReady}>
+        <WalletConnect
+          buttonClassName="cta"
+          signInLabel="Sign In With Web3 Wallet"
+        />
+      </span>
+      {#if $walletReady}
+        <p class="validation">
+          Connect your web3 wallet to load Potentials NFTs
+        </p>
+      {:else}
+        <span class="flex-row gap">
+          <LoadingSVG />
+          <h5>Checking wallet session…</h5>
+        </span>
+      {/if}
     </div>
   {/if}
 </section>
@@ -517,9 +511,12 @@
 
   section {
     gap: 0;
+    min-width: min(40rem, 95%);
     @include auto-width;
 
     .container {
+      width: 100%;
+      margin: 0;
       animation: none;
       @include dark-blue;
     }

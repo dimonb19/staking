@@ -1,4 +1,5 @@
 import type { FC, PropsWithChildren } from 'react';
+import { useEffect } from 'react';
 import { BrowserProvider } from 'ethers';
 import type { Provider, Eip1193Provider } from 'ethers';
 
@@ -9,7 +10,7 @@ import {
   ConnectButton,
 } from '@rainbow-me/rainbowkit';
 
-import { WagmiProvider, useAccountEffect, http } from 'wagmi';
+import { WagmiProvider, useAccount, useAccountEffect, http } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import { CHAIN_ID, RPC_URL } from '@/lib/contract';
 
@@ -19,6 +20,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 /* ---- Svelte stores & helpers ------------------------------------ */
 import { walletAddress, username, userProvider } from '@stores/auth.svelte';
+import { walletReady } from '@stores/web3.svelte';
 
 /* ------------------------------------------------------------------ */
 /* 1.  Global wagmi / RainbowKit config (must not re‑create on render) */
@@ -65,6 +67,13 @@ export const Web3Providers: FC<PropsWithChildren> = ({ children }) => (
 /* 3.  Sync RainbowKit ↔ Svelte stores with one hook                  */
 /* ------------------------------------------------------------------ */
 function useSyncStores() {
+  const { status } = useAccount();
+
+  useEffect(() => {
+    const hydrated = status !== 'connecting' && status !== 'reconnecting';
+    walletReady.set(hydrated);
+  }, [status]);
+
   useAccountEffect({
     async onConnect({ address, connector }) {
       /* update local stores */

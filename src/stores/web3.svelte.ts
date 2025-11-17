@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 import { walletAddress, userProvider } from '@stores/auth.svelte';
 
 export const connected = writable(false);
+export const walletReady = writable(false);
 export const address = walletAddress;
 export const provider = userProvider;
 export const isPaused = writable<boolean>(false);
