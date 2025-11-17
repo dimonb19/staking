@@ -8,6 +8,27 @@
 
   import Logo from '@components/icons/Logo.svelte';
 
+  const clamp = 64; // px after which hiding can kick in
+
+  let header: HTMLElement;
+
+  let hiddenHeader = $state<boolean>(false);
+
+  // Throttle scroll work to animation frames to avoid layout thrash
+  let lastY = 0;
+  let ticking = false;
+  const onscroll = () => {
+    const y = window.scrollY;
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      if (y > lastY && y > clamp) header.classList.add('hide');
+      else if (y < lastY) header.classList.remove('hide');
+      lastY = y;
+      ticking = false;
+    });
+  };
+
   // Rainbow button (React) Mount helper used when wallet isn't connected yet.
   const mountRainbow: Action<HTMLDivElement> = (node) => {
     const root = createRoot(node);
@@ -20,7 +41,9 @@
   };
 </script>
 
-<nav class="flex-row">
+<svelte:window {onscroll} />
+
+<nav class="flex-row" class:hide={hiddenHeader} bind:this={header}>
   <div class="flex-row">
     <Logo />
     <a
@@ -52,8 +75,14 @@
     padding: 1rem;
     justify-content: space-between;
     z-index: 100;
+    transition: transform 0.3s ease-in-out;
+    will-change: transform;
     @include dark-blue;
     @include box-shadow;
+
+    &.hide {
+      transform: translateY(-100%);
+    }
 
     a {
       font-weight: 500;

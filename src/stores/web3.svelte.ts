@@ -17,4 +17,3 @@ export const busy = writable<
 >('idle');
 export const error = writable<string | null>(null);
 export const notice = writable<string | null>(null);
-export const stakeModalToken = writable<number | null>(null);

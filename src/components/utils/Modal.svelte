@@ -1,43 +1,54 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
   import type { BrowserProvider } from 'ethers';
 
   import {
     address,
     provider,
     myTokens,
-    stakeModalToken,
     busy as busyStore,
     error as errorStore,
     notice as noticeStore,
   } from '@stores/web3.svelte';
+  import { stakeModal, closeStakeModal } from '@stores/modal.svelte';
   import { unstakeTokens } from '@/lib/staking';
 
-  export let loadStakingData: (addr: string) => Promise<void>;
+  let dialog = $state<HTMLDialogElement | null>(null);
+  let localError = $state<string | null>(null);
 
-  let localError: string | null = null;
+  const modalToken = $derived(stakeModal.tokenId);
+  const modalOpen = $derived(stakeModal.open);
 
-  $: modalToken = $stakeModalToken;
-  $: tokens = $myTokens;
-  $: currentToken =
-    modalToken !== null
-      ? (tokens.find((token) => token.tokenId === modalToken) ?? null)
-      : null;
-  $: status = deriveStatus(currentToken);
-  $: canUnstake =
+  const currentToken = $derived.by(() => {
+    if (modalToken === null) return null;
+    return $myTokens.find((token) => token.tokenId === modalToken) ?? null;
+  });
+
+  const status = $derived(deriveStatus(currentToken));
+  const canUnstake = $derived(
     status === 'unlockable' &&
-    currentToken?.isStaked &&
-    currentToken.unlockTime <= Math.floor(Date.now() / 1000);
+      currentToken?.isStaked &&
+      currentToken.unlockTime <= Math.floor(Date.now() / 1000),
+  );
 
-  function closeModal() {
-    localError = null;
-    stakeModalToken.set(null);
-  }
+  $effect(() => {
+    if (!dialog) return;
+    if (modalOpen) {
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  });
 
   function handleBackdrop(event: MouseEvent) {
     if (event.target === event.currentTarget) {
-      closeModal();
+      closeDialog();
     }
+  }
+
+  function closeDialog() {
+    localError = null;
+    closeStakeModal();
+    if (dialog?.open) dialog.close();
   }
 
   // Determine modal badge state based on unlock time.
@@ -97,8 +108,8 @@
       return;
     }
 
-    const wallet = get(address);
-    const currentProvider = get(provider) as BrowserProvider | null;
+    const wallet = $address;
+    const currentProvider = $provider as BrowserProvider | null;
 
     if (!wallet || !currentProvider) {
       localError = 'Connect a wallet first.';
@@ -114,8 +125,11 @@
       const signer = await currentProvider.getSigner();
       await unstakeTokens(signer, [modalToken]);
       noticeStore.set(`Unstaked token #${modalToken}.`);
-      await loadStakingData(wallet);
-      stakeModalToken.set(null);
+      const refresh = stakeModal.refresh;
+      if (refresh) {
+        await refresh(wallet);
+      }
+      closeStakeModal();
     } catch (err) {
       console.error(err);
       const message =
@@ -129,12 +143,14 @@
 </script>
 
 <!-- svelte-ignore a11y_interactive_supports_focus a11y_click_events_have_key_events -->
-{#if modalToken !== null}
-  <div
-    class="modal-backdrop"
-    role="dialog"
-    aria-modal="true"
+{#if modalOpen}
+  <dialog
+    class="staking-dialog"
+    bind:this={dialog}
+    onclose={closeDialog}
     onclick={handleBackdrop}
+    aria-label="Stake details modal"
+    aria-modal="true"
   >
     <div class="modal-panel">
       <header class="modal-header">
@@ -145,7 +161,7 @@
         <button
           class="icon-btn"
           type="button"
-          onclick={closeModal}
+          onclick={closeDialog}
           aria-label="Close"
         >
           ×
@@ -195,7 +211,7 @@
       </section>
 
       <footer class="modal-footer">
-        <button class="btn ghost" type="button" onclick={closeModal}>
+        <button class="btn ghost" type="button" onclick={closeDialog}>
           Close
         </button>
         <button
@@ -208,5 +224,5 @@
         </button>
       </footer>
     </div>
-  </div>
+  </dialog>
 {/if}
