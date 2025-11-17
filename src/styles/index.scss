@@ -143,17 +143,13 @@ a {
 
 html {
   text-align: center;
-  padding-block: 1.5rem 5.5rem;
+  padding-block: 6rem 1.5rem;
   letter-spacing: 0.025rem;
   word-spacing: 0.2em;
   background-color: black;
 
   @include cyan(0.85, 'text');
   @include font;
-
-  @include respond-up('small-desktop') {
-    padding-block: 6rem 1.5rem;
-  }
 
   &::-webkit-scrollbar {
     width: 0px;

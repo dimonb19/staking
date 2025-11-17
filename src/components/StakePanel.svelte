@@ -27,6 +27,9 @@
   import { STAKING_ADDRESS } from '@/lib/contract';
 
   import WalletConnect from '@components/web3/WalletConnect.svelte';
+  import RefreshSVG from '@components/icons/Refresh.svelte';
+  import ContractSVG from '@components/icons/Contract.svelte';
+  import Contract from '@components/icons/Contract.svelte';
 
   const LOCK_OPTIONS = [1, 3, 6, 12];
   const DEFAULT_LOCK = 6;
@@ -306,36 +309,49 @@
 
 <h1 class="sr-only">Potentials Staking</h1>
 
-<section class="transparent-container">
-  <h5>Select NFTs, choose a lock, and stake them together.</h5>
+<h5 class="mar-inline">Select NFTs, choose a lock, and stake them together.</h5>
 
+<section class="flex">
   {#if $connected}
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-actions">
-          <button
-            class="btn ghost"
-            type="button"
-            onclick={onRefreshClick}
-            disabled={$busyStore === 'fetch'}
-          >
-            {$busyStore === 'fetch' ? 'Fetching…' : 'Refresh'}
-          </button>
-          <button
-            class="btn ghost"
-            type="button"
-            onclick={handleApprove}
-            disabled={approveDisabled}
-          >
-            {approved
-              ? 'Approved'
-              : $busyStore === 'approve'
-                ? 'Approving…'
-                : 'Approve staking contract'}
-          </button>
-        </div>
-      </div>
+    <header class="flex pad pad-inline shad">
+      <h4>Potentials Staking</h4>
+      <span class="flex-row flex-wrap">
+        <!-- <button
+          class="orange-btn"
+          onclick={onRefreshClick}
+          disabled={$busyStore === 'fetch'}
+        >
+          {$busyStore === 'fetch' ? 'Fetching…' : 'Refresh'}
+        </button> -->
+        <RefreshSVG
+          onclick={onRefreshClick}
+          text={$busyStore === 'fetch' ? 'Fetching…' : 'Refresh'}
+          disabled={$busyStore === 'fetch'}
+        />
+        <ContractSVG
+          onclick={handleApprove}
+          text={approved
+            ? 'Approved'
+            : $busyStore === 'approve'
+              ? 'Approving…'
+              : 'Approve staking contract'}
+          disabled={approveDisabled}
+        />
+        <!-- <button
+          class="orange-btn"
+          onclick={handleApprove}
+          disabled={approveDisabled}
+        >
+          {approved
+            ? 'Approved'
+            : $busyStore === 'approve'
+              ? 'Approving…'
+              : 'Approve staking contract'}
+        </button> -->
+      </span>
+    </header>
 
+    <div class="panel container">
       {#if !stakingReady}
         <div class="banner warn">
           Set <code>PUBLIC_STAKING_ADDRESS</code> in your .env file to enable staking.
@@ -486,10 +502,57 @@
       {/if}
     </div>
   {:else}
-    <WalletConnect
-      buttonClassName="cta"
-      signInLabel="Sign In With Web3 Wallet"
-    />
-    <p class="validation">Connect your web3 wallet to load Potentials NFTs</p>
+    <div class="container">
+      <WalletConnect
+        buttonClassName="cta"
+        signInLabel="Sign In With Web3 Wallet"
+      />
+      <p class="validation">Connect your web3 wallet to load Potentials NFTs</p>
+    </div>
   {/if}
 </section>
+
+<style lang="scss">
+  @use '/src/styles/mixins/' as *;
+
+  section {
+    gap: 0;
+    @include auto-width;
+
+    .container {
+      animation: none;
+      @include dark-blue;
+    }
+
+    header {
+      width: 100%;
+      z-index: 10;
+      background-color: $royal-purple;
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
+
+      h4 {
+        @include orange(1, text);
+      }
+
+      span {
+        width: 100%;
+      }
+
+      @include respond-up(tablet) {
+        flex-direction: row;
+        justify-content: space-between;
+
+        span {
+          width: auto;
+        }
+      }
+    }
+
+    .panel {
+      width: 100%;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  }
+</style>
