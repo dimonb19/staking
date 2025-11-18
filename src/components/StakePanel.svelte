@@ -396,12 +396,13 @@
 
       {#if availableCount}
         <h5>{selectionCount}/{availableCount} NFTs selected for staking</h5>
-      {:else}
-        <h5>No NFTs available for staking</h5>
       {/if}
 
       {#if $dataStatus === 'loading'}
-        <p class="validation green-txt">Loading staking data…</p>
+        <span class="flex-row gap">
+          <LoadingSVG />
+          <h5>Loading staking data…</h5>
+        </span>
       {:else if $dataStatus === 'empty'}
         <p class="validation">No Potentials NFTs were found for this wallet</p>
       {:else if $myTokens.length === 0}
