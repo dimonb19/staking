@@ -6,11 +6,10 @@
     provider,
     myTokens,
     busy as busyStore,
-    error as errorStore,
-    notice as noticeStore,
   } from '@stores/web3.svelte';
   import { stakeModal, closeStakeModal } from '@stores/modal.svelte';
   import { unstakeTokens } from '@/lib/staking';
+  import { toastStore } from '@/stores/toast.svelte';
 
   let dialog = $state<HTMLDialogElement | null>(null);
   let localError = $state<string | null>(null);
@@ -118,13 +117,11 @@
 
     localError = null;
     busyStore.set('unstake');
-    errorStore.set(null);
-    noticeStore.set(null);
 
     try {
       const signer = await currentProvider.getSigner();
       await unstakeTokens(signer, [modalToken]);
-      noticeStore.set(`Unstaked token #${modalToken}.`);
+      toastStore.show(`Unstaked token #${modalToken}.`);
       const refresh = stakeModal.refresh;
       if (refresh) {
         await refresh(wallet);
@@ -135,7 +132,7 @@
       const message =
         err instanceof Error ? err.message : 'Unstake transaction failed.';
       localError = message;
-      errorStore.set(message);
+      toastStore.show(`Unstake failed: ${message}`, 'error');
     } finally {
       busyStore.set('idle');
     }

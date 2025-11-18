@@ -12,9 +12,6 @@ export const globalStats = writable<GlobalStats | null>(null);
 export const dataStatus = writable<
   'idle' | 'loading' | 'ready' | 'empty' | 'error'
 >('idle');
-export const dataError = writable<string | null>(null);
 export const busy = writable<
   'idle' | 'fetch' | 'approve' | 'stake' | 'unstake'
 >('idle');
-export const error = writable<string | null>(null);
-export const notice = writable<string | null>(null);

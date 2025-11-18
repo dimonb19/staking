@@ -194,7 +194,7 @@ button:not(.void-btn),
   inherits: false;
 }
 
-.cta {
+.cta:not(:disabled) {
   --cta-border-width: 2px;
   --cta-angle: 0deg;
   --cta-sweep: 24deg;

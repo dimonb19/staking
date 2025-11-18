@@ -12,10 +12,7 @@
     userStats,
     globalStats,
     dataStatus,
-    dataError,
     busy as busyStore,
-    error as errorStore,
-    notice as noticeStore,
     isPaused as pausedStore,
   } from '@stores/web3.svelte';
   import {
@@ -26,6 +23,7 @@
   import { stakingContract, isPaused, stakeTokens } from '@/lib/staking';
   import { getUserStakingData, getGlobalStats } from '@/lib/indexer';
   import { STAKING_ADDRESS } from '@/lib/contract';
+  import { toastStore } from '@/stores/toast.svelte';
 
   import WalletConnect from '@components/web3/WalletConnect.svelte';
   import RefreshSVG from '@components/icons/Refresh.svelte';
@@ -82,9 +80,6 @@
   async function loadStakingData(addr: string) {
     busyStore.set('fetch');
     dataStatus.set('loading');
-    dataError.set(null);
-    errorStore.set(null);
-    noticeStore.set(null);
 
     try {
       const [userData, globalSnapshot] = await Promise.all([
@@ -115,9 +110,11 @@
     } catch (err) {
       console.error(err);
       dataStatus.set('error');
-      dataError.set(
-        err instanceof Error ? err.message : 'Unable to load staking data.',
+      toastStore.show(
+        'Unable to load staking data, please try refreshing',
+        'error',
       );
+      toastStore.show('Unable to load staking data', 'error');
     } finally {
       busyStore.set('idle');
     }
@@ -173,36 +170,32 @@
 
   async function handleApprove() {
     if (!stakingReady) {
-      errorStore.set('Set PUBLIC_STAKING_ADDRESS to continue.');
+      toastStore.show('Set PUBLIC_STAKING_ADDRESS to continue', 'error');
       return;
     }
 
     const current = $address;
     if (!current) {
-      errorStore.set('Connect a wallet first.');
+      toastStore.show('Connect a wallet first', 'error');
       return;
     }
 
     const currentProvider = $provider as BrowserProvider | null;
     if (!currentProvider) {
-      errorStore.set('Connect a wallet first.');
+      toastStore.show('Connect a wallet first', 'error');
       return;
     }
 
     busyStore.set('approve');
-    errorStore.set(null);
-    noticeStore.set(null);
 
     try {
       const signer = await currentProvider.getSigner();
       await setApprovalForAll(signer, STAKING_ADDRESS, true);
       approved = true;
-      noticeStore.set('Staking contract approved.');
+      toastStore.show('Staking contract approved');
     } catch (err) {
       console.error(err);
-      errorStore.set(
-        err instanceof Error ? err.message : 'Approval transaction failed.',
-      );
+      toastStore.show('Approval transaction failed', 'error');
     } finally {
       busyStore.set('idle');
     }
@@ -210,7 +203,7 @@
 
   async function handleStake() {
     if (!stakingReady) {
-      errorStore.set('Set PUBLIC_STAKING_ADDRESS to continue.');
+      toastStore.show('Set PUBLIC_STAKING_ADDRESS to continue', 'error');
       return;
     }
 
@@ -218,13 +211,13 @@
     const currentProvider = $provider as BrowserProvider | null;
 
     if (!current || !currentProvider) {
-      errorStore.set('Connect a wallet first.');
+      toastStore.show('Connect a wallet first', 'error');
       return;
     }
 
     const selection = selectedTokens;
     if (!selection.length) {
-      errorStore.set('Select at least one NFT to stake.');
+      toastStore.show('Select at least one NFT to stake', 'error');
       return;
     }
 
@@ -232,26 +225,22 @@
     const months = selection.map((token) => token.lockMonths);
 
     if (months.some((value) => !LOCK_OPTIONS.includes(value))) {
-      errorStore.set('Choose a valid lock duration for each NFT.');
+      toastStore.show('Choose a valid lock duration for each NFT', 'error');
       return;
     }
 
     busyStore.set('stake');
-    errorStore.set(null);
-    noticeStore.set(null);
 
     try {
       const signer = await currentProvider.getSigner();
       await stakeTokens(signer, tokenIds, months);
-      noticeStore.set(
-        `Staked ${tokenIds.length} NFT${tokenIds.length > 1 ? 's' : ''} successfully.`,
+      toastStore.show(
+        `Staked ${tokenIds.length} NFT${tokenIds.length > 1 ? 's' : ''} successfully`,
       );
       await loadStakingData(current);
     } catch (err) {
       console.error(err);
-      errorStore.set(
-        err instanceof Error ? err.message : 'Staking transaction failed.',
-      );
+      toastStore.show('Staking transaction failed', 'error');
     } finally {
       busyStore.set('idle');
     }
@@ -266,9 +255,6 @@
       userStats.set(null);
       globalStats.set(null);
       dataStatus.set('idle');
-      dataError.set(null);
-      noticeStore.set(null);
-      errorStore.set(null);
       closeStakeModal();
       pausedStore.set(false);
       return;
@@ -336,15 +322,15 @@
 
     <div class="panel container">
       {#if !stakingReady}
-        <div class="banner warn">
+        <p class="validation">
           Set <code>PUBLIC_STAKING_ADDRESS</code> in your .env file to enable staking.
-        </div>
+        </p>
       {/if}
 
       {#if $pausedStore}
-        <div class="banner paused">
+        <p class="validation">
           Staking is temporarily paused. Unstake remains available after unlock.
-        </div>
+        </p>
       {/if}
 
       {#if $userStats || $globalStats}
@@ -391,21 +377,15 @@
       </p>
 
       {#if $dataStatus === 'loading'}
-        <p class="empty-state">Loading staking data…</p>
-      {:else if $dataStatus === 'error'}
-        <div class="banner warn">
-          {$dataError ?? 'Unable to load staking data. Please try refreshing.'}
-        </div>
+        <p class="validation green-txt">Loading staking data…</p>
       {:else if $dataStatus === 'empty'}
-        <p class="empty-state">
-          No Potentials NFTs were found for this wallet in the indexer yet.
-        </p>
+        <p class="validation">No Potentials NFTs were found for this wallet</p>
       {:else if $myTokens.length === 0}
-        <p class="empty-state">
-          Data loaded, but no NFTs are currently available for staking.
+        <p class="validation">
+          Data loaded, but no NFTs are currently available for staking
         </p>
       {:else}
-        <div class="token-grid">
+        <div class="flex-row flex-wrap gap">
           {#each $myTokens as token (token.tokenId)}
             <article
               class={`token-card ${token.selected ? 'selected' : ''} ${token.isStaked ? 'staked' : ''}`}
@@ -466,23 +446,9 @@
         </div>
       {/if}
 
-      <div class="stake-actions">
-        <button
-          class="btn primary"
-          type="button"
-          onclick={handleStake}
-          disabled={stakingDisabled}
-        >
-          {$busyStore === 'stake' ? 'Staking…' : 'Stake selected'}
-        </button>
-      </div>
-
-      {#if $noticeStore}
-        <p class="feedback notice" aria-live="polite">{$noticeStore}</p>
-      {/if}
-      {#if $errorStore}
-        <p class="feedback error" aria-live="assertive">{$errorStore}</p>
-      {/if}
+      <button class="cta" onclick={handleStake} disabled={stakingDisabled}>
+        {$busyStore === 'stake' ? 'Staking…' : 'Stake selected'}
+      </button>
     </div>
   {:else}
     <div class="container">
