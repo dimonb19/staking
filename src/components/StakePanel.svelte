@@ -485,22 +485,20 @@
     </div>
   {:else}
     <div class="container">
-      <span hidden={!$walletReady}>
-        <WalletConnect
-          buttonClassName="cta"
-          signInLabel="Sign In With Web3 Wallet"
-        />
-      </span>
       {#if $walletReady}
-        <p class="validation">
-          Connect your web3 wallet to load Potentials NFTs
-        </p>
+        <h5>Connect your web3 wallet to load Potentials</h5>
       {:else}
         <span class="flex-row gap">
           <LoadingSVG />
           <h5>Checking wallet session…</h5>
         </span>
       {/if}
+      <span hidden={!$walletReady}>
+        <WalletConnect
+          buttonClassName="cta"
+          signInLabel="Sign In With Web3 Wallet"
+        />
+      </span>
     </div>
   {/if}
 </section>
