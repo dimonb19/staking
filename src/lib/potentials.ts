@@ -7,7 +7,7 @@ import {
   POTENTIALS_ADDRESS,
   POTENTIALS_ABI,
   POTENTIALS_ABI_VIEM,
-} from '@/lib/contract';
+} from '@lib/contract';
 
 const sepolia = {
   ...viemSepolia,

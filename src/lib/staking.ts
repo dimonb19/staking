@@ -7,7 +7,7 @@ import {
   STAKING_ADDRESS,
   RPC_URL,
   CHAIN_ID,
-} from '@/lib/contract';
+} from '@lib/contract';
 
 export const readProvider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
 
@@ -25,14 +25,6 @@ const viemClient = createPublicClient({
   chain: sepolia,
   transport: http(RPC_URL),
 });
-
-export type StakeInfo = {
-  tokenId: number;
-  startTime: number;
-  unlockTime: number;
-  lockMonths: number;
-  owner: string;
-};
 
 type RawStakeTuple = readonly [
   bigint | number,

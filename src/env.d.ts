@@ -55,3 +55,11 @@ type GlobalStats = {
   totalVotingPower: bigint;
   totalStakedNFTs: number;
 };
+
+type StakeInfo = {
+  tokenId: number;
+  startTime: number;
+  unlockTime: number;
+  lockMonths: number;
+  owner: string;
+};
