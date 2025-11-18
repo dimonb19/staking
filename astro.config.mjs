@@ -15,10 +15,7 @@ const srcDir = fileURLToPath(new URL('./src', import.meta.url));
 // https://astro.build/config
 export default defineConfig({
   site: seoConfig.baseURL,
-  output: 'server',
-  adapter: node({
-    mode: 'standalone',
-  }),
+  output: 'static',
   integrations: [
     svelte(),
     react(),
