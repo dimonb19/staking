@@ -22,6 +22,7 @@
   } from '@stores/modal.svelte';
   import { stakingContract, isPaused, stakeTokens } from '@/lib/staking';
   import { getUserStakingData, getGlobalStats } from '@/lib/indexer';
+  import { getOwnedTokenSet } from '@/lib/potentials';
   import { STAKING_ADDRESS } from '@/lib/contract';
   import { toastStore } from '@/stores/toast.svelte';
 
@@ -56,6 +57,8 @@
     approved || !stakingReady || !$connected || $busyStore !== 'idle',
   );
 
+  let loadingData = false;
+
   // Map raw GraphQL entries into Svelte-friendly objects.
   function normalizeToken(raw: {
     tokenId: string;
@@ -78,20 +81,19 @@
 
   // Refresh both user + global snapshots once per wallet load/refresh.
   async function loadStakingData(addr: string) {
+    if (loadingData) return;
+    loadingData = true;
     busyStore.set('fetch');
     dataStatus.set('loading');
 
     try {
+      const ownedPromise = getOwnedTokenSet(addr as `0x${string}`);
       const [userData, globalSnapshot] = await Promise.all([
         getUserStakingData(addr),
         getGlobalStats(),
       ]);
 
-      const tokens = userData.stakedNFTs
-        .map(normalizeToken)
-        .sort((a, b) => a.tokenId - b.tokenId);
-      myTokens.set(tokens);
-
+      // Stats can render immediately even while owner scan finishes.
       userStats.set({
         totalVotingPower: userData.totalVotingPower,
         accumulatedPoints: userData.accumulatedPoints,
@@ -99,8 +101,33 @@
         pointsPerSecond: userData.pointsPerSecond,
         stakedNFTCount: userData.stakedNFTCount,
       });
-
       globalStats.set(globalSnapshot);
+
+      const owned = await ownedPromise;
+
+      // Merge indexer (staked) with on-chain owned (unstaked) tokens.
+      const merged = new Map<number, TokenState>();
+
+      userData.stakedNFTs.forEach((raw) => {
+        const token = normalizeToken(raw);
+        merged.set(token.tokenId, token);
+      });
+
+      owned.ids.forEach((tokenId) => {
+        if (merged.has(tokenId)) return;
+        merged.set(tokenId, {
+          tokenId,
+          votingPower: 0,
+          lockMonths: DEFAULT_LOCK,
+          stakedAt: 0,
+          unlockTime: 0,
+          isStaked: false,
+          selected: false,
+        });
+      });
+
+      const tokens = Array.from(merged.values()).sort((a, b) => a.tokenId - b.tokenId);
+      myTokens.set(tokens);
 
       if (!tokens.length) {
         dataStatus.set('empty');
@@ -110,13 +137,10 @@
     } catch (err) {
       console.error(err);
       dataStatus.set('error');
-      toastStore.show(
-        'Unable to load staking data, please try refreshing',
-        'error',
-      );
-      toastStore.show('Unable to load staking data', 'error');
+      toastStore.show('Unable to load staking data, please try refreshing', 'error');
     } finally {
       busyStore.set('idle');
+      loadingData = false;
     }
   }
 

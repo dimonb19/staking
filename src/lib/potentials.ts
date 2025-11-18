@@ -90,3 +90,13 @@ export async function getOwnedTokenIds(
 
   return mine;
 }
+
+// Returns both owned (unstaked) token IDs and a Set for quick lookup.
+export async function getOwnedTokenSet(
+  owner: `0x${string}`,
+  totalSupply = 1000,
+  batchSize = 100,
+) {
+  const ids = await getOwnedTokenIds(owner, totalSupply, batchSize);
+  return { ids, set: new Set(ids) };
+}
