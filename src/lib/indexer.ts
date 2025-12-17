@@ -41,7 +41,7 @@ export async function getUserStakingData(
         stakedNFTCount
         lastUpdateTime
       }
-      StakedNFT(where: { user: { _eq: $user } }) {
+      StakedNFT(where: { user: { _eq: $user }, isStaked: { _eq: true } }) {
         tokenId
         votingPower
         lockMonths
@@ -52,6 +52,7 @@ export async function getUserStakingData(
       GlobalState {
         totalVotingPower
         totalStakedNFTs
+        totalAccumulatedPoints
       }
     }
   `;
@@ -106,23 +107,31 @@ export async function getUserStakingData(
 export async function getGlobalStats(): Promise<{
   totalVotingPower: bigint;
   totalStakedNFTs: number;
+  totalAccumulatedPoints: number;
 }> {
   const query = `
     query GetGlobalStats {
       GlobalState {
         totalVotingPower
         totalStakedNFTs
+        totalAccumulatedPoints
       }
     }
   `;
 
   const result = await queryGraphQL<{ GlobalState: RawGlobalState[] }>(query);
   const globalState = result.GlobalState[0];
+  const totalAccumulatedPoints = globalState
+    ? parseFloat(globalState.totalAccumulatedPoints ?? '0')
+    : 0;
 
   return {
     totalVotingPower: globalState
       ? BigInt(globalState.totalVotingPower || '0')
       : 0n,
     totalStakedNFTs: globalState ? globalState.totalStakedNFTs : 0,
+    totalAccumulatedPoints: Number.isFinite(totalAccumulatedPoints)
+      ? totalAccumulatedPoints
+      : 0,
   };
 }

@@ -40,6 +40,9 @@
   let globalLockMonths = $state<number>(DEFAULT_LOCK);
 
   function isUnlockable(token: TokenState) {
+    console.log(token);
+    console.log(token.unlockTime <= Math.floor(Date.now() / 1000));
+    console.log(Number(token.unlockTime), Math.floor(Date.now() / 1000));
     return (
       token.isStaked &&
       token.unlockTime > 0 &&
@@ -76,6 +79,29 @@
   );
   const approveDisabled = $derived(
     approved || !stakingReady || !$connected || $busyStore !== 'idle',
+  );
+
+  const poolShare = $derived(
+    (() => {
+      const totalPoints = $globalStats?.totalAccumulatedPoints;
+      const userPoints = $userStats?.currentPoints;
+
+      if (
+        totalPoints === undefined ||
+        totalPoints === null ||
+        userPoints === undefined ||
+        userPoints === null
+      )
+        return null;
+
+      if (!Number.isFinite(totalPoints) || !Number.isFinite(userPoints))
+        return null;
+
+      if (totalPoints <= 0) return null;
+
+      const share = (userPoints / totalPoints) * 100;
+      return Math.min(Math.max(share, 0), 100);
+    })(),
   );
 
   let loadingData = false;
@@ -283,7 +309,10 @@
       globalLockMonths < MIN_LOCK ||
       globalLockMonths > MAX_LOCK
     ) {
-      toastStore.show('Choose a lock duration between 1 and 12 months', 'error');
+      toastStore.show(
+        'Choose a lock duration between 1 and 12 months',
+        'error',
+      );
       return;
     }
 
@@ -382,6 +411,20 @@
     });
   }
 
+  function formatPercent(value?: number | null, digits = 2) {
+    if (
+      value === undefined ||
+      value === null ||
+      Number.isNaN(value) ||
+      !Number.isFinite(value)
+    )
+      return '--';
+    return `${value.toLocaleString(undefined, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    })}%`;
+  }
+
   function formatPerDay(value?: number | null) {
     if (value === undefined || value === null || Number.isNaN(value))
       return '0 pts/day';
@@ -391,9 +434,7 @@
 
   // Date conversion utility
   const convertDate = (timestamp: number) => {
-    return new Date(
-      (Number(timestamp) - 3 * 24 * 60 * 60) * 1000,
-    ).toLocaleDateString();
+    return new Date(Number(timestamp) * 1000).toLocaleDateString();
   };
 </script>
 
@@ -437,8 +478,13 @@
             <p>Current points</p>
             <h4>
               {formatPoints($userStats?.currentPoints)}
+              <br />
               <strong>({formatPerDay($userStats?.pointsPerSecond)})</strong>
             </h4>
+          </article>
+          <article class:loading-animation={$dataStatus === 'loading'}>
+            <p>Your share of pool</p>
+            <h4>{formatPercent(poolShare)}</h4>
           </article>
           <article class:loading-animation={$dataStatus === 'loading'}>
             <p>Staked NFTs</p>
@@ -452,6 +498,12 @@
           <article class:loading-animation={$dataStatus === 'loading'}>
             <p>Global Potential Power</p>
             <h4>{formatBigInt($globalStats?.totalVotingPower)}</h4>
+          </article>
+          <article class:loading-animation={$dataStatus === 'loading'}>
+            <p>Global points</p>
+            <h4>
+              {formatPoints($globalStats?.totalAccumulatedPoints)}
+            </h4>
           </article>
           <article class:loading-animation={$dataStatus === 'loading'}>
             <p>Total staked NFTs</p>
@@ -471,7 +523,8 @@
           <label for="lock-period">
             Lock period:
             <strong class="lock-value">
-              {globalLockMonths} {globalLockMonths === 1 ? 'month' : 'months'}
+              {globalLockMonths}
+              {globalLockMonths === 1 ? 'month' : 'months'}
             </strong>
           </label>
           <input
@@ -573,7 +626,8 @@
               {#if stakeSelectionCount}
                 ({stakeSelectionCount})
               {/if}
-              for {globalLockMonths} {globalLockMonths === 1 ? 'month' : 'months'}
+              for {globalLockMonths}
+              {globalLockMonths === 1 ? 'month' : 'months'}
             {/if}
           </button>
           <button
@@ -667,10 +721,14 @@
             @include font(caption);
           }
 
-          h4 strong {
-            opacity: 0.5;
-            font-weight: normal;
-            @include font(body);
+          h4 {
+            text-align: left;
+
+            strong {
+              opacity: 0.5;
+              font-weight: normal;
+              @include font(body);
+            }
           }
         }
 

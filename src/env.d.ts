@@ -43,12 +43,14 @@ type UserStats = {
 type RawGlobalState = {
   totalVotingPower: string;
   totalStakedNFTs: number;
+  totalAccumulatedPoints?: string;
 };
 
 // Cached global metrics for high-level stats.
 type GlobalStats = {
   totalVotingPower: bigint;
   totalStakedNFTs: number;
+  totalAccumulatedPoints: number;
 };
 
 // Normalized user-level staking data the app consumes after parsing raw fields.
