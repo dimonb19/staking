@@ -37,6 +37,7 @@ export async function getUserStakingData(
     query GetUserData($user: String!) {
       User(where: { id: { _eq: $user } }) {
         totalVotingPower
+        totalEffectiveVotingPower
         accumulatedPoints
         stakedNFTCount
         lastUpdateTime
@@ -51,6 +52,7 @@ export async function getUserStakingData(
       }
       GlobalState {
         totalVotingPower
+        totalEffectiveVotingPower
         totalStakedNFTs
         totalAccumulatedPoints
       }
@@ -61,7 +63,7 @@ export async function getUserStakingData(
     User: RawUser[];
     StakedNFT: RawStakedNFT[];
     GlobalState: RawGlobalState[];
-  }>(query, { user: userAddress });
+  }>(query, { user: userAddress.toLowerCase() });
 
   const user = result.User[0];
   const globalState = result.GlobalState[0];
@@ -70,6 +72,7 @@ export async function getUserStakingData(
     return {
       stakedNFTs: [],
       totalVotingPower: 0n,
+      totalEffectiveVotingPower: 0n,
       accumulatedPoints: 0,
       currentPoints: 0,
       pointsPerSecond: 0,
@@ -78,25 +81,29 @@ export async function getUserStakingData(
   }
 
   const userVP = BigInt(user.totalVotingPower);
-  const globalVP = BigInt(globalState.totalVotingPower || '0');
+  const userEffectiveVP = BigInt(user.totalEffectiveVotingPower || '0');
+  const globalEffectiveVP = BigInt(globalState.totalEffectiveVotingPower || '0');
   const lastUpdateTime = BigInt(user.lastUpdateTime || '0');
   const currentTime = BigInt(Math.floor(Date.now() / 1000));
   const timeElapsed = Number(currentTime - lastUpdateTime);
 
   const accumulatedPoints = parseFloat(user.accumulatedPoints ?? '0');
   const pendingPoints =
-    globalVP > 0n
-      ? (Number(userVP) / Number(globalVP)) *
+    globalEffectiveVP > 0n
+      ? (Number(userEffectiveVP) / Number(globalEffectiveVP)) *
         POINTS_PER_SECOND *
         Math.max(timeElapsed, 0)
       : 0;
 
   const pointsPerSecond =
-    globalVP > 0n ? (Number(userVP) / Number(globalVP)) * POINTS_PER_SECOND : 0;
+    globalEffectiveVP > 0n
+      ? (Number(userEffectiveVP) / Number(globalEffectiveVP)) * POINTS_PER_SECOND
+      : 0;
 
   return {
     stakedNFTs: result.StakedNFT,
     totalVotingPower: userVP,
+    totalEffectiveVotingPower: userEffectiveVP,
     accumulatedPoints,
     currentPoints: accumulatedPoints + pendingPoints,
     pointsPerSecond,
@@ -104,15 +111,12 @@ export async function getUserStakingData(
   };
 }
 
-export async function getGlobalStats(): Promise<{
-  totalVotingPower: bigint;
-  totalStakedNFTs: number;
-  totalAccumulatedPoints: number;
-}> {
+export async function getGlobalStats(): Promise<GlobalStats> {
   const query = `
     query GetGlobalStats {
       GlobalState {
         totalVotingPower
+        totalEffectiveVotingPower
         totalStakedNFTs
         totalAccumulatedPoints
       }
@@ -129,9 +133,28 @@ export async function getGlobalStats(): Promise<{
     totalVotingPower: globalState
       ? BigInt(globalState.totalVotingPower || '0')
       : 0n,
+    totalEffectiveVotingPower: globalState
+      ? BigInt(globalState.totalEffectiveVotingPower || '0')
+      : 0n,
     totalStakedNFTs: globalState ? globalState.totalStakedNFTs : 0,
     totalAccumulatedPoints: Number.isFinite(totalAccumulatedPoints)
       ? totalAccumulatedPoints
       : 0,
   };
+}
+
+export async function getOwnedTokenIds(owner: string): Promise<number[]> {
+  const query = `
+    query GetOwnedTokens($owner: String!) {
+      TokenInfo(where: { owner: { _eq: $owner } }) {
+        tokenId
+      }
+    }
+  `;
+
+  const result = await queryGraphQL<{
+    TokenInfo: { tokenId: string }[];
+  }>(query, { owner: owner.toLowerCase() });
+
+  return (result.TokenInfo ?? []).map((t) => Number(t.tokenId));
 }

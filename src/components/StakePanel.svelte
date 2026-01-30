@@ -20,10 +20,11 @@
     stakeTokens,
     unstakeTokens,
   } from '@lib/staking';
-  import { getUserStakingData, getGlobalStats } from '@lib/indexer';
-  import { getOwnedTokenSet } from '@lib/potentials';
+  import { getUserStakingData, getGlobalStats, getOwnedTokenIds } from '@lib/indexer';
   import { STAKING_ADDRESS } from '@lib/contract';
   import { toastStore } from '@stores/toast.svelte';
+  import { previewStaking } from '@lib/stakingPreview';
+  import { getVotingPower } from '@lib/tokenLevels';
 
   import WalletConnect from '@components/web3/WalletConnect.svelte';
   import RefreshSVG from '@components/icons/Refresh.svelte';
@@ -83,24 +84,34 @@
 
   const poolShare = $derived(
     (() => {
-      const totalPoints = $globalStats?.totalAccumulatedPoints;
-      const userPoints = $userStats?.currentPoints;
+      const globalEffectiveVP = $globalStats?.totalEffectiveVotingPower;
+      const userEffectiveVP = $userStats?.totalEffectiveVotingPower;
 
-      if (
-        totalPoints === undefined ||
-        totalPoints === null ||
-        userPoints === undefined ||
-        userPoints === null
-      )
+      if (globalEffectiveVP === undefined || userEffectiveVP === undefined)
         return null;
 
-      if (!Number.isFinite(totalPoints) || !Number.isFinite(userPoints))
-        return null;
+      if (globalEffectiveVP === 0n) return null;
 
-      if (totalPoints <= 0) return null;
-
-      const share = (userPoints / totalPoints) * 100;
+      const share =
+        (Number(userEffectiveVP) / Number(globalEffectiveVP)) * 100;
       return Math.min(Math.max(share, 0), 100);
+    })(),
+  );
+
+  const stakingPreview = $derived(
+    (() => {
+      if (!stakeSelectionCount) return null;
+
+      const globalEffectiveVP = $globalStats?.totalEffectiveVotingPower ?? 0n;
+      const userEffectiveVP = $userStats?.totalEffectiveVotingPower ?? 0n;
+      const tokenIds = stakeSelection.map((t) => t.tokenId);
+
+      return previewStaking(
+        tokenIds,
+        globalLockMonths,
+        globalEffectiveVP,
+        userEffectiveVP,
+      );
     })(),
   );
 
@@ -119,7 +130,6 @@
     };
   }
 
-  // Refresh both user + global snapshots once per wallet load/refresh.
   async function loadStakingData(addr: string) {
     if (loadingData) return;
     loadingData = true;
@@ -127,21 +137,17 @@
     dataStatus.set('loading');
 
     try {
-      // --- On-chain owned scan until we use Potentials API ---
-      const ownedPromise = getOwnedTokenSet(addr as `0x${string}`);
-      const owned = await ownedPromise;
-      // -------------------------------------------------------
-
-      const [userData, globalSnapshot] = await Promise.all([
+      const [ownedIds, userData, globalSnapshot] = await Promise.all([
+        getOwnedTokenIds(addr),
         getUserStakingData(addr),
         getGlobalStats(),
       ]);
 
-      // Stats can render immediately even while owner scan finishes.
       const stakedTokens = userData.stakedNFTs.map(normalizeToken);
 
       userStats.set({
         totalVotingPower: userData.totalVotingPower,
+        totalEffectiveVotingPower: userData.totalEffectiveVotingPower,
         accumulatedPoints: userData.accumulatedPoints,
         currentPoints: userData.currentPoints,
         pointsPerSecond: userData.pointsPerSecond,
@@ -150,19 +156,17 @@
 
       globalStats.set(globalSnapshot);
 
-      // Merge indexer (staked) with on-chain owned (unstaked) tokens.
       const merged = new Map<number, TokenState>();
 
       stakedTokens.forEach((token) => {
         merged.set(token.tokenId, token);
       });
 
-      // --- Temporary fallback merge for owned-but-unstaked tokens ---
-      owned.ids.forEach((tokenId) => {
+      ownedIds.forEach((tokenId) => {
         if (merged.has(tokenId)) return;
         merged.set(tokenId, {
           tokenId,
-          votingPower: 0,
+          votingPower: getVotingPower(tokenId),
           lockMonths: DEFAULT_LOCK,
           stakedAt: 0,
           unlockTime: 0,
@@ -170,7 +174,6 @@
           selected: false,
         });
       });
-      // ---------------------------------------------------------------
 
       const tokens = Array.from(merged.values()).sort(
         (a, b) => a.tokenId - b.tokenId,
@@ -537,6 +540,38 @@
           />
         </div>
 
+        {#if stakingPreview}
+          <div class="preview-box flex fade-in">
+            <h5>Staking Preview</h5>
+            <div class="preview-stats">
+              <p>
+                <span>Selected NFTs:</span>
+                <strong>{stakeSelectionCount}</strong>
+              </p>
+              <p>
+                <span>Base VP:</span>
+                <strong>{stakingPreview.totalBaseVP}</strong>
+              </p>
+              <p>
+                <span>Boost ({globalLockMonths}mo):</span>
+                <strong>{stakingPreview.boostMultiplier.toFixed(2)}x</strong>
+              </p>
+              <p>
+                <span>Boosted VP:</span>
+                <strong>{stakingPreview.boostedVP.toFixed(1)}</strong>
+              </p>
+              <p>
+                <span>Projected pts/day:</span>
+                <strong>{formatPoints(stakingPreview.projectedPointsPerDay)}</strong>
+              </p>
+              <p>
+                <span>Projected pool share:</span>
+                <strong>{formatPercent(stakingPreview.projectedPoolShare)}</strong>
+              </p>
+            </div>
+          </div>
+        {/if}
+
         <span class="flex-row flex-wrap">
           <ContractSVG
             onclick={handleApprove}
@@ -761,6 +796,39 @@
 
         input[type='range'] {
           width: min(25rem, 100%);
+        }
+      }
+
+      .preview-box {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        @include gray-border;
+        @include purple(0.35);
+
+        h5 {
+          margin-bottom: 0.75rem;
+          @include orange(1, text);
+        }
+
+        .preview-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+          gap: 0.5rem 1.5rem;
+
+          p {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+
+            span {
+              opacity: 0.7;
+            }
+
+            strong {
+              @include orange(1, text);
+            }
+          }
         }
       }
     }
