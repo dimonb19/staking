@@ -25,6 +25,7 @@ type TokenState = {
 // Raw user snapshot from the indexer.
 type RawUser = {
   totalVotingPower: string;
+  totalEffectiveVotingPower: string;
   accumulatedPoints: string;
   stakedNFTCount: number;
   lastUpdateTime: string;
@@ -33,6 +34,7 @@ type RawUser = {
 // Cached user metrics for the header/stats cards.
 type UserStats = {
   totalVotingPower: bigint;
+  totalEffectiveVotingPower: bigint;
   accumulatedPoints: number;
   currentPoints: number;
   pointsPerSecond: number;
@@ -42,6 +44,7 @@ type UserStats = {
 // Raw global snapshot from the indexer.
 type RawGlobalState = {
   totalVotingPower: string;
+  totalEffectiveVotingPower: string;
   totalStakedNFTs: number;
   totalAccumulatedPoints?: string;
 };
@@ -49,6 +52,7 @@ type RawGlobalState = {
 // Cached global metrics for high-level stats.
 type GlobalStats = {
   totalVotingPower: bigint;
+  totalEffectiveVotingPower: bigint;
   totalStakedNFTs: number;
   totalAccumulatedPoints: number;
 };
@@ -57,6 +61,7 @@ type GlobalStats = {
 type UserStakingData = {
   stakedNFTs: RawStakedNFT[];
   totalVotingPower: bigint;
+  totalEffectiveVotingPower: bigint;
   accumulatedPoints: number;
   currentPoints: number;
   pointsPerSecond: number;
