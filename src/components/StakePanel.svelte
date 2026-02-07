@@ -20,7 +20,11 @@
     stakeTokens,
     unstakeTokens,
   } from '@lib/staking';
-  import { getUserStakingData, getGlobalStats, getOwnedTokenIds } from '@lib/indexer';
+  import {
+    getUserStakingData,
+    getGlobalStats,
+    getOwnedTokenIds,
+  } from '@lib/indexer';
   import { STAKING_ADDRESS } from '@lib/contract';
   import { toastStore } from '@stores/toast.svelte';
   import { previewStaking } from '@lib/stakingPreview';
@@ -92,8 +96,7 @@
 
       if (globalEffectiveVP === 0n) return null;
 
-      const share =
-        (Number(userEffectiveVP) / Number(globalEffectiveVP)) * 100;
+      const share = (Number(userEffectiveVP) / Number(globalEffectiveVP)) * 100;
       return Math.min(Math.max(share, 0), 100);
     })(),
   );
@@ -522,56 +525,6 @@
           {availableCount} / {$myTokens.length} NFTs available for staking
         </h4>
 
-        <div class="lock-slider flex gap-8">
-          <label for="lock-period">
-            Lock period:
-            <strong class="lock-value">
-              {globalLockMonths}
-              {globalLockMonths === 1 ? 'month' : 'months'}
-            </strong>
-          </label>
-          <input
-            id="lock-period"
-            type="range"
-            min={MIN_LOCK}
-            max={MAX_LOCK}
-            step="1"
-            bind:value={globalLockMonths}
-          />
-        </div>
-
-        {#if stakingPreview}
-          <div class="preview-box flex fade-in">
-            <h5>Staking Preview</h5>
-            <div class="preview-stats">
-              <p>
-                <span>Selected NFTs:</span>
-                <strong>{stakeSelectionCount}</strong>
-              </p>
-              <p>
-                <span>Base VP:</span>
-                <strong>{stakingPreview.totalBaseVP}</strong>
-              </p>
-              <p>
-                <span>Boost ({globalLockMonths}mo):</span>
-                <strong>{stakingPreview.boostMultiplier.toFixed(2)}x</strong>
-              </p>
-              <p>
-                <span>Boosted VP:</span>
-                <strong>{stakingPreview.boostedVP.toFixed(1)}</strong>
-              </p>
-              <p>
-                <span>Projected pts/day:</span>
-                <strong>{formatPoints(stakingPreview.projectedPointsPerDay)}</strong>
-              </p>
-              <p>
-                <span>Projected pool share:</span>
-                <strong>{formatPercent(stakingPreview.projectedPoolShare)}</strong>
-              </p>
-            </div>
-          </div>
-        {/if}
-
         <span class="flex-row flex-wrap">
           <ContractSVG
             onclick={handleApprove}
@@ -619,7 +572,7 @@
               class:potential-tile={stakeSelectable && !token.selected}
               class:green-tile={token.selected && selectable}
               class:gray-tile={disabledTile}
-              class:rose-tile={token.isStaked && unlockable}
+              class:rose-tile={token.isStaked && unlockable && !token.selected}
               disabled={!selectable}
               onclick={() => toggleSelection(token.tokenId, !token.selected)}
               aria-label={`Select token ${token.tokenId}`}
@@ -652,6 +605,59 @@
           {/each}
         </div>
 
+        <div class="preview-box flex fade-in">
+          <div class="lock-slider flex gap-8">
+            <label for="lock-period">
+              Lock period:
+              <strong class="lock-value">
+                {globalLockMonths}
+                {globalLockMonths === 1 ? 'month' : 'months'}
+              </strong>
+            </label>
+            <input
+              id="lock-period"
+              type="range"
+              min={MIN_LOCK}
+              max={MAX_LOCK}
+              step="1"
+              bind:value={globalLockMonths}
+            />
+          </div>
+
+          {#if stakingPreview}
+            <div class="flex-row flex-wrap">
+              <p>
+                <span>Selected NFTs:</span>
+                <strong>{stakeSelectionCount}</strong>
+              </p>
+              <p>
+                <span>Base VP:</span>
+                <strong>{stakingPreview.totalBaseVP}</strong>
+              </p>
+              <p>
+                <span>Boost ({globalLockMonths}mo):</span>
+                <strong>{stakingPreview.boostMultiplier.toFixed(2)}x</strong>
+              </p>
+              <p>
+                <span>Boosted VP:</span>
+                <strong>{stakingPreview.boostedVP.toFixed(1)}</strong>
+              </p>
+              <p>
+                <span>Projected pts/day:</span>
+                <strong
+                  >{formatPoints(stakingPreview.projectedPointsPerDay)}</strong
+                >
+              </p>
+              <p>
+                <span>Projected pool share:</span>
+                <strong
+                  >{formatPercent(stakingPreview.projectedPoolShare)}</strong
+                >
+              </p>
+            </div>
+          {/if}
+        </div>
+
         <span class="flex-row flex-wrap">
           <button class="cta" onclick={handleStake} disabled={stakingDisabled}>
             {#if $busyStore === 'stake'}
@@ -666,7 +672,7 @@
             {/if}
           </button>
           <button
-            class="cta green-btn"
+            class="green-btn"
             onclick={handleUnstake}
             disabled={unstakingDisabled}
           >
@@ -711,8 +717,17 @@
     width: 95%;
     max-width: calc(15rem * 4 + 7rem); // 4 tiles per row + gaps
 
+    @include respond-up(full-hd) {
+      max-width: calc(15rem * 5 + 8rem);
+    }
+
+    @include respond-up(quad-hd) {
+      max-width: calc(15rem * 6 + 11rem);
+    }
+
     .container {
       width: 100%;
+      max-width: unset;
       margin: 0;
       animation: none;
       @include dark-blue;
@@ -804,30 +819,34 @@
         padding: 1rem;
         border-radius: 0.5rem;
         @include gray-border;
-        @include purple(0.35);
+        @include purple(0.25);
 
-        h5 {
-          margin-bottom: 0.75rem;
-          @include orange(1, text);
-        }
+        p {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          width: 100%;
+          border-top: 1px solid $transparent-gray;
+          padding-top: 1rem;
 
-        .preview-stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-          gap: 0.5rem 1.5rem;
+          @include respond-up(small-desktop) {
+            width: calc(50% - 1rem);
+            border-top: none;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            @include dark-blue(0.5);
+          }
 
-          p {
-            display: flex;
-            justify-content: space-between;
-            gap: 0.5rem;
+          @include respond-up(large-desktop) {
+            width: calc(33% - 1rem);
+          }
 
-            span {
-              opacity: 0.7;
-            }
+          span {
+            @include white-txt(soft);
+          }
 
-            strong {
-              @include orange(1, text);
-            }
+          strong {
+            @include orange(1, text);
           }
         }
       }

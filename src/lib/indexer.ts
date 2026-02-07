@@ -82,7 +82,9 @@ export async function getUserStakingData(
 
   const userVP = BigInt(user.totalVotingPower);
   const userEffectiveVP = BigInt(user.totalEffectiveVotingPower || '0');
-  const globalEffectiveVP = BigInt(globalState.totalEffectiveVotingPower || '0');
+  const globalEffectiveVP = BigInt(
+    globalState.totalEffectiveVotingPower || '0',
+  );
   const lastUpdateTime = BigInt(user.lastUpdateTime || '0');
   const currentTime = BigInt(Math.floor(Date.now() / 1000));
   const timeElapsed = Number(currentTime - lastUpdateTime);
@@ -97,7 +99,8 @@ export async function getUserStakingData(
 
   const pointsPerSecond =
     globalEffectiveVP > 0n
-      ? (Number(userEffectiveVP) / Number(globalEffectiveVP)) * POINTS_PER_SECOND
+      ? (Number(userEffectiveVP) / Number(globalEffectiveVP)) *
+        POINTS_PER_SECOND
       : 0;
 
   return {
