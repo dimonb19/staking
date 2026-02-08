@@ -481,7 +481,7 @@
             <h4>{formatBigInt($userStats?.totalVotingPower)}</h4>
           </article>
           <article class:loading-animation={$dataStatus === 'loading'}>
-            <p>Current points</p>
+            <p>Your points</p>
             <h4>
               {formatPoints($userStats?.currentPoints)}
               <br />
@@ -493,7 +493,7 @@
             <h4>{formatPercent(poolShare)}</h4>
           </article>
           <article class:loading-animation={$dataStatus === 'loading'}>
-            <p>Staked NFTs</p>
+            <p>Your Staked NFTs</p>
             <h4>
               {($userStats?.stakedNFTCount ?? 0).toLocaleString()}
             </h4>
@@ -631,7 +631,7 @@
                 <strong>{stakeSelectionCount}</strong>
               </p>
               <p>
-                <span>Base VP:</span>
+                <span>Base Voting Power:</span>
                 <strong>{stakingPreview.totalBaseVP}</strong>
               </p>
               <p>
@@ -639,7 +639,7 @@
                 <strong>{stakingPreview.boostMultiplier.toFixed(2)}x</strong>
               </p>
               <p>
-                <span>Boosted VP:</span>
+                <span>Boosted Voting Power:</span>
                 <strong>{stakingPreview.boostedVP.toFixed(1)}</strong>
               </p>
               <p>
@@ -649,7 +649,7 @@
                 >
               </p>
               <p>
-                <span>Projected pool share:</span>
+                <span>Projected Pool Share:</span>
                 <strong
                   >{formatPercent(stakingPreview.projectedPoolShare)}</strong
                 >
