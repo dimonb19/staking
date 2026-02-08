@@ -416,7 +416,7 @@
 
 .gray-tile {
   @extend .tile;
-  @include gray(0.25);
+  @include gray(0.35);
 
   &:hover:not(&:disabled),
   &:active:not(&:disabled),
